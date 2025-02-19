@@ -35,6 +35,8 @@ private slots:
 
     void on_layerListW_itemChanged(QListWidgetItem *item);
 
+    void on_eraseButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     // CanvasLayer *canvasLayer;

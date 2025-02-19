@@ -74,3 +74,10 @@ void MainWindow::on_layerListW_itemChanged(QListWidgetItem *item)
     }
 }
 
+
+void MainWindow::on_eraseButton_clicked()
+{
+    CanvasLayer currentLayer = stack->currentWidget();
+    currentLayer.setErasing(true);
+}
+

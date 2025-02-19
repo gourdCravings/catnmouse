@@ -10,11 +10,15 @@ CONFIG += c++17
 
 SOURCES += \
     canvaslayer.cpp \
+    catbrush.cpp \
+    catbrush_OLD.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     canvaslayer.h \
+    catbrush.h \
+    catbrush_OLD.h \
     mainwindow.h
 
 FORMS += \
@@ -24,3 +28,6 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    resources.qrc
