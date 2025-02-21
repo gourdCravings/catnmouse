@@ -37,6 +37,8 @@ private slots:
 
     void on_eraseButton_clicked();
 
+    void on_brushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     // CanvasLayer *canvasLayer;

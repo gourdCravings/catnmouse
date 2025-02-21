@@ -81,3 +81,16 @@ void MainWindow::on_eraseButton_clicked()
     currentLayer.setErasing(true);
 }
 
+
+void MainWindow::on_brushButton_clicked()
+{
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    CatBrush *newBrush = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::red);
+    // ^ if you make this brush too small it stops being a circle and becomes Square
+    currentLayer->SetCatBrush(newBrush);
+    // if (currentLayer.GetCatBrush().GetTexture().toImage() == QImage(":/brush/textures/testtexture.png"))
+    // {
+    //     currentLayer.GetCatBrush.SetTexture(QPixmap(":/brush/textures/circletexture.png"));
+    // }
+}
+

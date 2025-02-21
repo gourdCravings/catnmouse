@@ -2,18 +2,23 @@
 #define CATBRUSH_H
 
 #include <QGraphicsPixmapItem>
+#include <QBitmap>
 
 class CatBrush : public QGraphicsPixmapItem
 {
 public:
-    CatBrush();
+    CatBrush(QString textureName=":/brush/textures/testtexture.png", int brushSize=100, QColor color = Qt::blue);
+    //CatBrush(const QPixmap &txt) : texture(txt) {};
+    // getters
+    int GetWidth() const { return brushWidth; }
+    QPixmap GetTexture() const { return texture; }
     // setters
     void SetTexture(QPixmap newTexture);
-    QPixmap texture;
 
 private:
-    int brushWidth = 10;
-    QColor brushColor = Qt::blue;
+    QPixmap texture;
+    int brushWidth;
+    QColor brushColor;
 
 };
 

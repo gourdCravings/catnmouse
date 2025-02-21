@@ -5,14 +5,13 @@
 CanvasLayer::CanvasLayer(QObject *parent)
 {
     setAttribute(Qt::WA_StaticContents);
-    // color texture
-    // get mask
-    QBitmap textureMask = myTexture.mask();
-    myTexture.fill(myPenColor);
-    myTexture.setMask(textureMask);
+    catBrush = new CatBrush();
 }
 
-
+void CanvasLayer::SetCatBrush(CatBrush *newCatBrush)
+{
+    catBrush = newCatBrush; // should set catBrush to newCatBrush, doesn't
+}
 /*void CanvasLayer::setPenColor(const QColor &newColor)
 {
     myPenColor = newColor;
@@ -81,11 +80,11 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
     QPoint newPoint;
     // set newPoint to translation of endPoint
     // translate endPoint by half of texture width to the left
-    newPoint.setX(endPoint.x() - (myTexture.width()/2));
+    newPoint.setX(endPoint.x() - (catBrush->GetTexture().width()/2));
     // translate endPoint by half of texture height to the top
-    newPoint.setY(endPoint.y() - (myTexture.height()/2));
+    newPoint.setY(endPoint.y() - (catBrush->GetTexture().width()/2));
     // draw texture
-    painter.drawPixmap(newPoint, myTexture);
+    painter.drawPixmap(newPoint, catBrush->GetTexture());
     update();
     // //painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
     // //painter.setPen(QPen(myPenColor, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));

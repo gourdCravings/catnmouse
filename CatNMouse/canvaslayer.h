@@ -8,19 +8,27 @@
 #include <QPoint>
 #include <QWidget>
 #include <QPen>
-#include "catbrush_OLD.h"
+#include "catbrush.h"
 #include <QPainter>
 
 class CanvasLayer : public QWidget
 {
+    Q_OBJECT
 public:
     CanvasLayer(QObject *parent = nullptr);
-
+    //virtual ~CanvasLayer() {};
     // properties
     //void setPenColor(const QColor &newColor);
     //void setPenWidth(int newWidth);
     void setLayerIndex(int newIndex);
     void setErasing(bool isErasing);
+
+    // getters
+    //CatBrush catBrush; // making this public because GetCatBrush causes problems for some reason
+    CatBrush* GetCatBrush() const { return catBrush;  }
+
+    // setters
+    void SetCatBrush(CatBrush *newCatBrush);
 
     bool isModified() const { return modified; }
     //QColor penColor() const { return myPenColor; }
@@ -45,13 +53,13 @@ private:
     bool modified = false;
     bool scribbling = false;
     bool erasing = false;
-    int myPenWidth = 100;
+    // int myPenWidth = 100;
     int layerIndexP = 0;
-    QColor myPenColor = Qt::blue;
+    // QColor myPenColor = Qt::blue;
     QImage image;
     QPoint lastPoint;
-    //CatBrush catBrush;
-    QPixmap myTexture = QPixmap(":/brush/textures/testtexture.png").scaledToWidth(myPenWidth);
+    CatBrush *catBrush;
+    // QPixmap myTexture = QPixmap(":/brush/textures/testtexture.png").scaledToWidth(myPenWidth);
     //QBrush myBrush = QBrush(myPenColor, myTexture);
     //QPen myPen = QPen(myBrush, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
     //QPen myPen = QPen(myPenColor, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
