@@ -8,6 +8,7 @@
 
 #include "../../../mainwindow.h"
 #include <QtCore/qmetatype.h>
+#include <QtCore/QList>
 
 #include <QtCore/qtmochelpers.h>
 
@@ -40,15 +41,15 @@ static constexpr auto qt_meta_stringdata_ZN10MainWindowE = QtMocHelpers::stringD
     "MainWindow",
     "on_addLayerBtn_clicked",
     "",
-    "on_layerListW_itemPressed",
-    "QListWidgetItem*",
-    "item",
-    "on_layerListW_currentItemChanged",
-    "current",
-    "previous",
-    "on_layerListW_itemChanged",
     "on_eraseButton_clicked",
-    "on_brushButton_clicked"
+    "on_brushButton_clicked",
+    "on_layerListView_pressed",
+    "QModelIndex",
+    "index",
+    "UpdateStackOrder",
+    "QList<CanvasLayer*>",
+    "newOrder",
+    "OnLayerSelected"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
 #error "qtmochelpers.h not found or too old."
@@ -69,19 +70,19 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
        1,    0,   50,    2, 0x08,    1 /* Private */,
-       3,    1,   51,    2, 0x08,    2 /* Private */,
-       6,    2,   54,    2, 0x08,    4 /* Private */,
-       9,    1,   59,    2, 0x08,    7 /* Private */,
-      10,    0,   62,    2, 0x08,    9 /* Private */,
-      11,    0,   63,    2, 0x08,   10 /* Private */,
+       3,    0,   51,    2, 0x08,    2 /* Private */,
+       4,    0,   52,    2, 0x08,    3 /* Private */,
+       5,    1,   53,    2, 0x08,    4 /* Private */,
+       8,    1,   56,    2, 0x0a,    6 /* Public */,
+      11,    1,   59,    2, 0x0a,    8 /* Public */,
 
  // slots: parameters
     QMetaType::Void,
-    QMetaType::Void, 0x80000000 | 4,    5,
-    QMetaType::Void, 0x80000000 | 4, 0x80000000 | 4,    7,    8,
-    QMetaType::Void, 0x80000000 | 4,    5,
     QMetaType::Void,
     QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 6,    7,
+    QMetaType::Void, 0x80000000 | 9,   10,
+    QMetaType::Void, 0x80000000 | 6,    7,
 
        0        // eod
 };
@@ -97,20 +98,19 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         QtPrivate::TypeAndForceComplete<MainWindow, std::true_type>,
         // method 'on_addLayerBtn_clicked'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        // method 'on_layerListW_itemPressed'
-        QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        QtPrivate::TypeAndForceComplete<QListWidgetItem *, std::false_type>,
-        // method 'on_layerListW_currentItemChanged'
-        QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        QtPrivate::TypeAndForceComplete<QListWidgetItem *, std::false_type>,
-        QtPrivate::TypeAndForceComplete<QListWidgetItem *, std::false_type>,
-        // method 'on_layerListW_itemChanged'
-        QtPrivate::TypeAndForceComplete<void, std::false_type>,
-        QtPrivate::TypeAndForceComplete<QListWidgetItem *, std::false_type>,
         // method 'on_eraseButton_clicked'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'on_brushButton_clicked'
-        QtPrivate::TypeAndForceComplete<void, std::false_type>
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'on_layerListView_pressed'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>,
+        // method 'UpdateStackOrder'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        QtPrivate::TypeAndForceComplete<const QList<CanvasLayer*> &, std::false_type>,
+        // method 'OnLayerSelected'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>
     >,
     nullptr
 } };
@@ -121,12 +121,24 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: _t->on_addLayerBtn_clicked(); break;
-        case 1: _t->on_layerListW_itemPressed((*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[1]))); break;
-        case 2: _t->on_layerListW_currentItemChanged((*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[2]))); break;
-        case 3: _t->on_layerListW_itemChanged((*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[1]))); break;
-        case 4: _t->on_eraseButton_clicked(); break;
-        case 5: _t->on_brushButton_clicked(); break;
+        case 1: _t->on_eraseButton_clicked(); break;
+        case 2: _t->on_brushButton_clicked(); break;
+        case 3: _t->on_layerListView_pressed((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 4: _t->UpdateStackOrder((*reinterpret_cast< std::add_pointer_t<QList<CanvasLayer*>>>(_a[1]))); break;
+        case 5: _t->OnLayerSelected((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
         default: ;
+        }
+    }
+    if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
+        switch (_id) {
+        default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
+        case 4:
+            switch (*reinterpret_cast<int*>(_a[1])) {
+            default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
+            case 0:
+                *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType::fromType< QList<CanvasLayer*> >(); break;
+            }
+            break;
         }
     }
 }
@@ -156,7 +168,7 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
         if (_id < 6)
-            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
+            qt_static_metacall(this, _c, _id, _a);
         _id -= 6;
     }
     return _id;

@@ -26,9 +26,11 @@ public:
     // getters
     //CatBrush catBrush; // making this public because GetCatBrush causes problems for some reason
     CatBrush* GetCatBrush() const { return catBrush;  }
+    QString GetLayerName() const { return layerName; }
 
     // setters
     void SetCatBrush(CatBrush *newCatBrush);
+    void SetLayerName(QString name);
 
     bool isModified() const { return modified; }
     //QColor penColor() const { return myPenColor; }
@@ -59,6 +61,7 @@ private:
     QImage image;
     QPoint lastPoint;
     CatBrush *catBrush;
+    QString layerName;
     // QPixmap myTexture = QPixmap(":/brush/textures/testtexture.png").scaledToWidth(myPenWidth);
     //QBrush myBrush = QBrush(myPenColor, myTexture);
     //QPen myPen = QPen(myBrush, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);

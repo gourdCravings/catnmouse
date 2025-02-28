@@ -122,3 +122,8 @@ void CanvasLayer::setErasing(bool isErasing)
 {
     erasing = isErasing;
 }
+
+void CanvasLayer::SetLayerName(QString name)
+{
+    layerName = name;
+}

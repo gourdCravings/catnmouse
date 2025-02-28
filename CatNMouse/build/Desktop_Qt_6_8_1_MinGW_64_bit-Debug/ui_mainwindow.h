@@ -12,7 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
-#include <QtWidgets/QListWidget>
+#include <QtWidgets/QListView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
@@ -29,7 +29,7 @@ public:
     QWidget *layerWidget;
     QGridLayout *gridLayout;
     QPushButton *addLayerBtn;
-    QListWidget *layerListW;
+    QListView *layerListView;
     QWidget *canvasWidget;
     QWidget *toolBarWidget;
     QWidget *toolButtonWidget;
@@ -66,11 +66,10 @@ public:
 
         gridLayout->addWidget(addLayerBtn, 0, 0, 1, 1, Qt::AlignmentFlag::AlignLeft);
 
-        layerListW = new QListWidget(layerWidget);
-        layerListW->setObjectName("layerListW");
-        layerListW->setSortingEnabled(false);
+        layerListView = new QListView(layerWidget);
+        layerListView->setObjectName("layerListView");
 
-        gridLayout->addWidget(layerListW, 1, 0, 1, 1);
+        gridLayout->addWidget(layerListView, 1, 0, 1, 1);
 
         canvasWidget = new QWidget(centralwidget);
         canvasWidget->setObjectName("canvasWidget");
@@ -156,9 +155,6 @@ public:
         MainWindow->setStatusBar(statusbar);
 
         retranslateUi(MainWindow);
-
-        layerListW->setCurrentRow(-1);
-
 
         QMetaObject::connectSlotsByName(MainWindow);
     } // setupUi

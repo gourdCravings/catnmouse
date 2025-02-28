@@ -1,0 +1,10 @@
+debug/canvaslayer.o
+debug/catbrush.o
+debug/catbrush_OLD.o
+debug/layermodel.o
+debug/main.o
+debug/mainwindow.o
+debug/qrc_resources.o
+debug/moc_canvaslayer.o
+debug/moc_layermodel.o
+debug/moc_mainwindow.o

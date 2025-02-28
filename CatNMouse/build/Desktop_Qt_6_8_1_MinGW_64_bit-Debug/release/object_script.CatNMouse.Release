@@ -1,0 +1,10 @@
+release/canvaslayer.o
+release/catbrush.o
+release/catbrush_OLD.o
+release/layermodel.o
+release/main.o
+release/mainwindow.o
+release/qrc_resources.o
+release/moc_canvaslayer.o
+release/moc_layermodel.o
+release/moc_mainwindow.o

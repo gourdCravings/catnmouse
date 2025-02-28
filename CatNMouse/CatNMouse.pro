@@ -12,6 +12,7 @@ SOURCES += \
     canvaslayer.cpp \
     catbrush.cpp \
     catbrush_OLD.cpp \
+    layermodel.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -19,6 +20,7 @@ HEADERS += \
     canvaslayer.h \
     catbrush.h \
     catbrush_OLD.h \
+    layermodel.h \
     mainwindow.h
 
 FORMS += \
