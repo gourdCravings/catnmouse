@@ -27,6 +27,8 @@ protected:
     //void keyPressEvent(QKeyEvent *event) override;
 
 private slots:
+    void open();
+
     void on_addLayerBtn_clicked();
 
     void on_layerListW_itemPressed(QListWidgetItem *item);
@@ -39,10 +41,23 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    // CanvasLayer *canvasLayer;
+    CanvasLayer *canvasLayer;
     QStackedLayout *stack;
+
+    bool saveFile(const QByteArray &fileFormat);
+
+    void createActions();
+    void createMenus();
     // QWidget *widget;
     // CanvasLayer *canvas;
     // QGraphicsView *canvasView;
+    void save();
+    QAction *lineAction;
+    QMenu *saveAsMenu;
+    QMenu *fileMenu;
+    QAction *openAct;
+    QAction *printAct;
+    QAction *exitAct;
+    QList<QAction *> saveAsActs;
 };
 #endif // MAINWINDOW_H
