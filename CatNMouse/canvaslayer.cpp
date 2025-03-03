@@ -68,10 +68,10 @@ void CanvasLayer::mouseMoveEvent(QMouseEvent *event)
 
 void CanvasLayer::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && scribbling && isActive) {
+    if (event->button() == Qt::LeftButton && scribbling) {
         drawLineTo(event->position().toPoint());
     }
-    else if (drawingLine && isActive) {
+    else if (drawingLine) {
         drawLineTo(event->position().toPoint());
         drawingLine = false; // reset line drawing mode
         scribbling = true;

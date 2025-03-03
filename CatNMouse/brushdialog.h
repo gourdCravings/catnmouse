@@ -17,8 +17,6 @@ public:
     explicit BrushDialog(QWidget *parent = nullptr);
     ~BrushDialog();
 
-signals:
-    void accept(const CatBrush &brush);
 private slots:
     void on_listWidget_clicked(const QModelIndex &index);
 
