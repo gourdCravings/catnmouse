@@ -4,6 +4,7 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QImageWriter>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -20,10 +21,10 @@ MainWindow::MainWindow(QWidget *parent)
     // set up model
     model->sort(0, Qt::DescendingOrder);
     connect(model, &LayerModel::LayersReordered, this, &MainWindow::UpdateStackOrder);
-    connect(ui->layerListView->selectionModel(), &QItemSelectionModel::currentChanged,
-            this, &MainWindow::OnLayerSelected);
     // set up listview
     SetupListView();
+    connect(ui->layerListView->selectionModel(), &QItemSelectionModel::currentChanged,
+            this, &MainWindow::OnLayerSelected);
     // connect(ui->layerListView, SIGNAL(currentRowChanged(int)),
     //         stack, SLOT(setCurrentIndex(int)));
 
@@ -120,10 +121,11 @@ void MainWindow::on_eraseButton_clicked()
 
 void MainWindow::on_brushButton_clicked()
 {
-    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
-    CatBrush *newBrush = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::red);
-    // ^ if you make this brush too small it stops being a circle and becomes Square
-    currentLayer->SetCatBrush(newBrush);
+    // dialog
+    // probably should make this its own method
+    BrushDialog *brushDialog = new BrushDialog(this);
+    brushDialog->setWindowModality(Qt::WindowModality::WindowModal);
+    brushDialog->show();
     // if (currentLayer.GetCatBrush().GetTexture().toImage() == QImage(":/brush/textures/testtexture.png"))
     // {
     //     currentLayer.GetCatBrush.SetTexture(QPixmap(":/brush/textures/circletexture.png"));
@@ -133,9 +135,7 @@ void MainWindow::on_brushButton_clicked()
 
 void MainWindow::on_layerListView_pressed(const QModelIndex &index)
 {
-    QModelIndex sourceIndex = proxyModel->mapToSource(index);
-    ui->layerListView->setCurrentIndex(index);
-    stack->setCurrentWidget(model->GetLayerAtIndex(sourceIndex.row()));
+    OnLayerSelected(index);
 }
 
 void MainWindow::UpdateStackOrder(const QList<CanvasLayer *> &newOrder)
@@ -159,11 +159,23 @@ void MainWindow::UpdateStackOrder(const QList<CanvasLayer *> &newOrder)
 
 void MainWindow::OnLayerSelected(const QModelIndex &index)
 {
-    QModelIndex sourceIndex = proxyModel->mapToSource(index);
     if (!index.isValid())
         return;
+
+    QModelIndex sourceIndex = proxyModel->mapToSource(index);
+    // get currentLayer info
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    //int currentIndex = stack->indexOf(currentLayer);
+    // get selectedLayer info
     CanvasLayer *selectedLayer = model->GetLayerAtIndex(sourceIndex.row());
-    stack->setCurrentWidget(selectedLayer);
+    // if selectedlayer doesn't change, ignore rest of code
+    if (!selectedLayer || selectedLayer == currentLayer)
+        return;
+    currentLayer->setEnabled(false);
+    currentLayer->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    selectedLayer->setEnabled(true);
+    selectedLayer->setAttribute(Qt::WA_TransparentForMouseEvents, false);
+    selectedLayer->setFocus();
 }
 
 void MainWindow::SetupListView()

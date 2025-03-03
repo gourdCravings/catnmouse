@@ -11,6 +11,7 @@
 #include <QStringListModel>
 #include "layermodel.h"
 #include <QSortFilterProxyModel>
+#include "brushdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,6 +26,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    QStackedLayout* GetStack() const { return stack; }
 
 protected:
     //void keyPressEvent(QKeyEvent *event) override;
@@ -54,12 +56,16 @@ public slots:
 private:
     Ui::MainWindow *ui;
     // CanvasLayer *canvasLayer;
+    // stack/list
     QStackedLayout *stack;
     QList<CanvasLayer> *layerList;
+    CanvasLayer *activeLayer;
     //QStringListModel model;
     LayerModel *model;
     QSortFilterProxyModel *proxyModel;
+    // line
     QAction *lineAction;
+    // save
     QMenu *saveMenu;
     QMenu *fileMenu;
     QAction *openAct;

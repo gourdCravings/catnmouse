@@ -1,7 +1,7 @@
 #include "catbrush.h"
 #include <QDebug>
 
-CatBrush::CatBrush(QString textureName, int brushSize, QColor color)
+CatBrush::CatBrush(QString textureName, int brushSize, QColor color, QString name)
 {
     // set brushWidth
     brushWidth = brushSize;
@@ -9,7 +9,8 @@ CatBrush::CatBrush(QString textureName, int brushSize, QColor color)
     brushColor = color;
     // set texture
     SetTexture(QPixmap(textureName));
-
+    // set name
+    brushName = name;
 }
 
 void CatBrush::SetTexture(QPixmap newTexture)
