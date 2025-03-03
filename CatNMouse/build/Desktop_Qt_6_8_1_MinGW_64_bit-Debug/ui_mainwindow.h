@@ -173,7 +173,7 @@ public:
         transformButton->setText(QCoreApplication::translate("MainWindow", "...", nullptr));
         eraseButton->setText(QCoreApplication::translate("MainWindow", "E", nullptr));
         eyedropButton->setText(QCoreApplication::translate("MainWindow", "...", nullptr));
-        lineButton->setText(QCoreApplication::translate("MainWindow", "...", nullptr));
+        lineButton->setText(QCoreApplication::translate("MainWindow", "L", nullptr));
         zoomButton->setText(QCoreApplication::translate("MainWindow", "...", nullptr));
     } // retranslateUi
 

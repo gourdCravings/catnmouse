@@ -143,7 +143,7 @@
       <item row="1" column="4">
        <widget class="QToolButton" name="lineButton">
         <property name="text">
-         <string>...</string>
+         <string>L</string>
         </property>
        </widget>
       </item>

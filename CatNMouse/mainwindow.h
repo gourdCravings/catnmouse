@@ -44,11 +44,14 @@ private slots:
 
     void on_layerListView_pressed(const QModelIndex &index);
 
+    void open();
+
+    void on_lineButton_clicked();
+
 public slots:
     void UpdateStackOrder(const QList<CanvasLayer*> &newOrder);
     void OnLayerSelected(const QModelIndex &index);
 private:
-    void SetupListView();
     Ui::MainWindow *ui;
     // CanvasLayer *canvasLayer;
     QStackedLayout *stack;
@@ -56,8 +59,20 @@ private:
     //QStringListModel model;
     LayerModel *model;
     QSortFilterProxyModel *proxyModel;
+    QAction *lineAction;
+    QMenu *saveMenu;
+    QMenu *fileMenu;
+    QAction *openAct;
+    QAction *printAct;
+    QAction *exitAct;
+    QList<QAction*> saveActs;
     // QWidget *widget;
     // CanvasLayer *canvas;
     // QGraphicsView *canvasView;
+    void SetupListView();
+    bool SaveFile(const QByteArray &fileFormat);
+    void CreateActions();
+    void CreateMenus();
+    void Save();
 };
 #endif // MAINWINDOW_H

@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
+#include <QStandardPaths>
+#include <QFileDialog>
+#include <QImageWriter>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,6 +38,26 @@ MainWindow::MainWindow(QWidget *parent)
     // ui->layerListW->addItem("Background");
     // ui->layerListW->item(0)->setCheckState(Qt::Checked);
     // ui->layerListW->setCurrentRow(0);
+
+    // trying to setup the file saving shit
+    openAct = new QAction(tr("&Open"), this);
+    openAct->setShortcut(QKeySequence::Open);
+    openAct->setStatusTip(tr("Open an existing file"));
+    connect(openAct, &QAction::triggered, this, &MainWindow::open);
+
+    fileMenu = menuBar()->addMenu(tr("&File"));
+
+    CreateActions();
+    CreateMenus();
+
+    // create the line tool action and connect it to canvasLayer
+    lineAction = new QAction(tr("Line Tool"), this);
+    lineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L)); // Optional shortcut
+    connect(lineAction, &QAction::triggered, backgroundLayer, &CanvasLayer::lineTool);
+
+    // add to menu
+    QMenu *toolsMenu = menuBar()->addMenu(tr("Tools"));
+    toolsMenu->addAction(lineAction);
 }
 
 MainWindow::~MainWindow()
@@ -155,3 +178,63 @@ void MainWindow::SetupListView()
     ui->layerListView->setDragDropMode(QAbstractItemView::InternalMove);
     ui->layerListView->setDropIndicatorShown(true);
 }
+
+void MainWindow::Save()
+{
+    QAction *action = qobject_cast<QAction*>(sender());
+    QByteArray fileFormat = action->data().toByteArray();
+    SaveFile(fileFormat);
+}
+
+bool MainWindow::SaveFile(const QByteArray &fileFormat)
+{
+    QString initialPath = (QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + "/untitled" + fileFormat);
+
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+                                                    initialPath,
+                                                    tr("%1 Files (*.%2);;All Files (*)")
+                                                        .arg(QString::fromLatin1(fileFormat.toUpper()))
+                                                        .arg(QString::fromLatin1(fileFormat)));
+    if (fileName.isEmpty())
+        return false;
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    return currentLayer->saveImage(fileName, fileFormat.constData());
+}
+
+void MainWindow::CreateActions()
+{
+    const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
+    for (const QByteArray &format : imageFormats) {
+        QString text = tr("%1...").arg(QString::fromLatin1(format).toUpper());
+
+        QAction *action = new QAction(text, this);
+        action->setData(format);
+        connect(action, &QAction::triggered, this, &MainWindow::Save);
+        saveActs.append(action);
+    }
+}
+
+void MainWindow::CreateMenus()
+{
+    saveMenu = new QMenu(tr("&Save As"), this);
+    for (QAction *action : std::as_const(saveActs))
+        saveMenu->addAction(action);
+
+    // fileMenu was already created and added to the menu bar.
+    // Clear its contents and add your actions.
+    fileMenu->clear();
+    fileMenu->addAction(openAct);
+    fileMenu->addMenu(saveMenu);
+}
+
+
+void MainWindow::open()
+{
+    qDebug() << "open() is here!";
+}
+
+void MainWindow::on_lineButton_clicked()
+{
+    lineAction->activate(QAction::Trigger);
+}
+

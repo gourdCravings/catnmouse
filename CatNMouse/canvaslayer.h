@@ -37,6 +37,11 @@ public:
     //int penWidth() const { return myPenWidth; }
     int layerIndex() const { return layerIndexP; }
 
+    // stuff for switching tools
+    void lineTool(); // Activates the line drawing tool
+
+    bool saveImage(const QString &fileName, const char *fileFormat);
+
 public slots:
     void clearImage();
 
@@ -53,13 +58,16 @@ private:
     void resizeImage(QImage *image, const QSize &newSize);
 
     bool modified = false;
-    bool scribbling = false;
+    bool scribbling = true;
     bool erasing = false;
+    bool drawingLine = false;
     // int myPenWidth = 100;
     int layerIndexP = 0;
     // QColor myPenColor = Qt::blue;
     QImage image;
     QPoint lastPoint;
+    QPoint lineStartPoint;
+    QPoint currentLineEnd; // line tool preview
     CatBrush *catBrush;
     QString layerName;
     // QPixmap myTexture = QPixmap(":/brush/textures/testtexture.png").scaledToWidth(myPenWidth);

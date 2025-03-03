@@ -12,6 +12,7 @@ public:
     // getters
     int GetWidth() const { return brushWidth; }
     QPixmap GetTexture() const { return texture; }
+    QColor GetColor() const { return brushColor; }
     // setters
     void SetTexture(QPixmap newTexture);
 

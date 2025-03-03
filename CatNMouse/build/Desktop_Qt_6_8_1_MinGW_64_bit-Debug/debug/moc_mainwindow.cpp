@@ -46,6 +46,8 @@ static constexpr auto qt_meta_stringdata_ZN10MainWindowE = QtMocHelpers::stringD
     "on_layerListView_pressed",
     "QModelIndex",
     "index",
+    "open",
+    "on_lineButton_clicked",
     "UpdateStackOrder",
     "QList<CanvasLayer*>",
     "newOrder",
@@ -61,7 +63,7 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+       8,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -69,19 +71,23 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,   50,    2, 0x08,    1 /* Private */,
-       3,    0,   51,    2, 0x08,    2 /* Private */,
-       4,    0,   52,    2, 0x08,    3 /* Private */,
-       5,    1,   53,    2, 0x08,    4 /* Private */,
-       8,    1,   56,    2, 0x0a,    6 /* Public */,
-      11,    1,   59,    2, 0x0a,    8 /* Public */,
+       1,    0,   62,    2, 0x08,    1 /* Private */,
+       3,    0,   63,    2, 0x08,    2 /* Private */,
+       4,    0,   64,    2, 0x08,    3 /* Private */,
+       5,    1,   65,    2, 0x08,    4 /* Private */,
+       8,    0,   68,    2, 0x08,    6 /* Private */,
+       9,    0,   69,    2, 0x08,    7 /* Private */,
+      10,    1,   70,    2, 0x0a,    8 /* Public */,
+      13,    1,   73,    2, 0x0a,   10 /* Public */,
 
  // slots: parameters
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void, 0x80000000 | 6,    7,
-    QMetaType::Void, 0x80000000 | 9,   10,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, 0x80000000 | 11,   12,
     QMetaType::Void, 0x80000000 | 6,    7,
 
        0        // eod
@@ -105,6 +111,10 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         // method 'on_layerListView_pressed'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>,
+        // method 'open'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'on_lineButton_clicked'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'UpdateStackOrder'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<const QList<CanvasLayer*> &, std::false_type>,
@@ -124,15 +134,17 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 1: _t->on_eraseButton_clicked(); break;
         case 2: _t->on_brushButton_clicked(); break;
         case 3: _t->on_layerListView_pressed((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
-        case 4: _t->UpdateStackOrder((*reinterpret_cast< std::add_pointer_t<QList<CanvasLayer*>>>(_a[1]))); break;
-        case 5: _t->OnLayerSelected((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
+        case 4: _t->open(); break;
+        case 5: _t->on_lineButton_clicked(); break;
+        case 6: _t->UpdateStackOrder((*reinterpret_cast< std::add_pointer_t<QList<CanvasLayer*>>>(_a[1]))); break;
+        case 7: _t->OnLayerSelected((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
         default: ;
         }
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
         switch (_id) {
         default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
-        case 4:
+        case 6:
             switch (*reinterpret_cast<int*>(_a[1])) {
             default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
             case 0:
@@ -162,14 +174,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 6)
+        if (_id < 8)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 8;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 6)
+        if (_id < 8)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 6;
+        _id -= 8;
     }
     return _id;
 }
