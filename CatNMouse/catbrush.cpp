@@ -8,15 +8,17 @@ CatBrush::CatBrush(QString textureName, int brushSize, QColor color, QString nam
     // set brushColor
     brushColor = color;
     // set texture
-    SetTexture(QPixmap(textureName));
+    SetTexture(textureName);
     // set name
     brushName = name;
 }
 
-void CatBrush::SetTexture(QPixmap newTexture)
+void CatBrush::SetTexture(QString newPath)
 {
     //QRect cropRect = QRegion(newTexture.createMaskFromColor(Qt::transparent)).boundingRect();
     //texture = newTexture.copy(cropRect).scaledToWidth(brushWidth, Qt::SmoothTransformation);
+    texturePath = newPath;
+    QPixmap newTexture = QPixmap(texturePath);
     texture = newTexture.scaledToWidth(brushWidth);
     this->setPixmap(texture);
     // color texture
@@ -24,4 +26,10 @@ void CatBrush::SetTexture(QPixmap newTexture)
     QBitmap textureMask = texture.mask();
     texture.fill(brushColor);
     texture.setMask(textureMask);
+}
+
+void CatBrush::SetBrushWidth(int newWidth)
+{
+    brushWidth = newWidth;
+    SetTexture(texturePath);
 }

@@ -28,6 +28,8 @@ public:
     ~MainWindow();
     QStackedLayout* GetStack() const { return stack; }
 
+    CanvasLayer* GetCurrentLayer();
+
 protected:
     //void keyPressEvent(QKeyEvent *event) override;
 
@@ -50,6 +52,8 @@ private slots:
 
     void on_lineButton_clicked();
 
+    void on_widthSpin_valueChanged(int arg1);
+
 public slots:
     void UpdateStackOrder(const QList<CanvasLayer*> &newOrder);
     void OnLayerSelected(const QModelIndex &index);
@@ -68,9 +72,11 @@ private:
     // save
     QMenu *saveMenu;
     QMenu *fileMenu;
+    QMenu *optionsMenu;
     QAction *openAct;
     QAction *printAct;
     QAction *exitAct;
+    QAction *brushWidthAct;
     QList<QAction*> saveActs;
     // QWidget *widget;
     // CanvasLayer *canvas;

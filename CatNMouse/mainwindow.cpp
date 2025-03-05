@@ -27,8 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::OnLayerSelected);
     // connect(ui->layerListView, SIGNAL(currentRowChanged(int)),
     //         stack, SLOT(setCurrentIndex(int)));
-
-
+    //connect(ui->widthSpin, SIGNAL(valueChanged(int)), GetCurrentLayer()->GetCatBrush(), SLOT(SetBrushWidth(int)));
     // set up background layer
     CanvasLayer *backgroundLayer = new CanvasLayer(this);
     backgroundLayer->setPalette(Qt::white);
@@ -36,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     backgroundLayer->SetLayerName("Background");
     stack->addWidget(backgroundLayer);
     model->AddLayer(backgroundLayer);
+
+    // set up spinbox
+    ui->widthSpin->setValue(backgroundLayer->GetCatBrush()->GetWidth());
     // ui->layerListW->addItem("Background");
     // ui->layerListW->item(0)->setCheckState(Qt::Checked);
     // ui->layerListW->setCurrentRow(0);
@@ -80,37 +82,6 @@ void MainWindow::on_addLayerBtn_clicked()
     stack->setCurrentWidget(newLayer);
     ui->addLayerBtn->setDisabled(false);
 }
-
-
-// void MainWindow::on_layerListView_itemPressed(QListWidgetItem *item)
-// {
-//     ui->layerListW->setCurrentItem(item);
-// }
-
-// void MainWindow::on_layerListW_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
-// {
-//     stack->setCurrentIndex(ui->layerListW->row(current));
-// }
-
-// NOTE: this is. Specifically meant for checking if a layer has been unchecked/checked
-// which is really odd, considering how this event is more... general?
-// regardless -- fix this via QAbstractListModel subclass @ later date. this isn't about getting the most optimal possible code rn
-// it's about it Running and Working
-// void MainWindow::on_layerListW_itemChanged(QListWidgetItem *item)
-// {
-//     // get layer
-//     int layerIndex = ui->layerListW->row(item);
-//     QWidget *checkedLayer = stack->widget(layerIndex); // invalid conversion error using CanvasLayer, fix with subclass at later date
-//     if (item->checkState() == Qt::Unchecked)
-//     {
-//         // hide layer
-//         checkedLayer->hide();
-//     } else {
-//         // show layer
-//         checkedLayer->show();
-//     }
-// }
-
 
 void MainWindow::on_eraseButton_clicked()
 {
@@ -248,5 +219,26 @@ void MainWindow::open()
 void MainWindow::on_lineButton_clicked()
 {
     lineAction->activate(QAction::Trigger);
+}
+
+CanvasLayer* MainWindow::GetCurrentLayer()
+{
+    return qobject_cast<CanvasLayer*>(stack->currentWidget());
+}
+
+void MainWindow::on_widthSpin_valueChanged(int arg1)
+{
+    // get current layer
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+
+    // get value from spinbox
+    int newValue = ui->widthSpin->value();
+
+    // get catbrush
+    CatBrush *currentBrush = currentLayer->GetCatBrush();
+
+    // fix & set catbrush
+    currentBrush->SetBrushWidth(arg1);
+    currentLayer->SetCatBrush(currentBrush);
 }
 

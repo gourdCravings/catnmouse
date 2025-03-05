@@ -16,6 +16,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QWidget>
@@ -46,6 +47,7 @@ public:
     QToolButton *eyedropButton;
     QToolButton *lineButton;
     QToolButton *zoomButton;
+    QSpinBox *widthSpin;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -145,6 +147,11 @@ public:
 
         gridLayout_2->addWidget(zoomButton, 1, 5, 1, 1);
 
+        widthSpin = new QSpinBox(centralwidget);
+        widthSpin->setObjectName("widthSpin");
+        widthSpin->setGeometry(QRect(670, 70, 44, 29));
+        widthSpin->setMinimum(1);
+        widthSpin->setMaximum(10000);
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");

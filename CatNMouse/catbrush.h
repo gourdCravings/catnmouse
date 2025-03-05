@@ -15,9 +15,13 @@ public:
     QColor GetColor() const { return brushColor; }
     QString GetName() const { return brushName; }
     // setters
-    void SetTexture(QPixmap newTexture);
+    void SetTexture(QString newPath);
+    void SetBrushWidth(int newBrushWidth);
 
+// public slots:
+//     void widthSlot(int newBrushWidth);
 private:
+    QString texturePath;
     QPixmap texture;
     int brushWidth;
     QColor brushColor;

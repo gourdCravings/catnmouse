@@ -6,7 +6,7 @@
 CanvasLayer::CanvasLayer(QObject *parent)
 {
     setAttribute(Qt::WA_StaticContents);
-    catBrush = new CatBrush();
+    catBrush = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::red, "round");
     // // init image with current size
     // QSize initSize = size();
     // if (!initSize.isValid() || initSize.isEmpty())
@@ -141,31 +141,6 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
         lastPoint = endPoint;
     }
     update();
-    /*QPainter painter(&image);
-    // get newPoint
-    QPoint newPoint;
-    // set newPoint to translation of endPoint
-    // translate endPoint by half of texture width to the left
-    newPoint.setX(endPoint.x() - (catBrush->GetTexture().width()/2));
-    // translate endPoint by half of texture height to the top
-    newPoint.setY(endPoint.y() - (catBrush->GetTexture().width()/2));
-    // draw texture
-    painter.drawPixmap(newPoint, catBrush->GetTexture());
-    update();
-    // //painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-    // //painter.setPen(QPen(myPenColor, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    // QLineF line = QLineF(lastPoint, endPoint);
-    // // catBrush.SetBrushPos(line);
-    // // painter.setPen(catBrush.GetPen());
-    // // painter.setBrush(catBrush.GetBrush());
-    // painter.drawPixmap(lastPoint, myTexture);
-    // //painter.drawLine(lastPoint, endPoint);
-    // modified = true;
-
-    // int rad = (myPenWidth / 2) + 2;
-    // update(QRect(lastPoint, endPoint).normalized()
-    //             .adjusted(-rad, -rad, +rad, +rad));
-    // lastPoint = endPoint;*/
 }
 
 void CanvasLayer::resizeImage(QImage *image, const QSize &newSize)
