@@ -15,17 +15,38 @@ CatBrush::CatBrush(QString textureName, int brushSize, QColor color, QString nam
 
 void CatBrush::SetTexture(QString newPath)
 {
-    //QRect cropRect = QRegion(newTexture.createMaskFromColor(Qt::transparent)).boundingRect();
-    //texture = newTexture.copy(cropRect).scaledToWidth(brushWidth, Qt::SmoothTransformation);
     texturePath = newPath;
-    QPixmap newTexture = QPixmap(texturePath);
-    texture = newTexture.scaledToWidth(brushWidth);
+    QPixmap basePix = QPixmap(texturePath);
+
+    // this code is meant to convert to QImage using 32-bit ARGB due to QPixmaps having
+    // a 1-bit mask, where filling with brushColor leads to us having a solid interior,
+    // yet hitting a hard 1-bit boundary.
+
+    QImage img = basePix.scaled(brushWidth, brushWidth, Qt::IgnoreAspectRatio, Qt::SmoothTransformation).toImage().convertToFormat(QImage::Format_ARGB32);
+
+    // tinting every pixel but preserving the alpha
+    for (int y = 0; y < img.height(); ++y)
+    {
+        QRgb *line = reinterpret_cast<QRgb*>(img.scanLine(y));
+        for (int x = 0; x < img.width(); ++x)
+        {
+            QColor oldPixel = QColor::fromRgba(line[x]);
+            int alpha = oldPixel.alpha();
+
+            // if alpha=0, remain transparent
+            // otherwise, apply the brush color but keep the original alpha
+            if (alpha > 0)
+            {
+                QColor tinted = brushColor;
+                tinted.setAlpha(alpha);
+                line[x] = tinted.rgba();
+            }
+        }
+    }
+
+    // converting back to QPixmap
+    texture = QPixmap::fromImage(img);
     this->setPixmap(texture);
-    // color texture
-    // get mask
-    QBitmap textureMask = texture.mask();
-    texture.fill(brushColor);
-    texture.setMask(textureMask);
 }
 
 void CatBrush::SetBrushWidth(int newWidth)

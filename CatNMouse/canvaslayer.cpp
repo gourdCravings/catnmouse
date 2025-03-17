@@ -108,6 +108,7 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
     // because it does???
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing, true); // setting in catbrush?
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
     // using bresenham's line algorithm for some simple interpolation
     // NOTE: update this to xiaolin wu's algorithm
@@ -116,12 +117,20 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
 
     for (int i = 0; i <= steps; ++i) {
         qreal t = static_cast<qreal>(i) / steps;
-        QPoint interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
+        if (!drawingLine == true)
+        {
+            QPoint interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
 
-        QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
-                        interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+            QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
+                            interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+        } else {
+            QPoint interpolatedPoint = lineStartPoint * (1 - t) + endPoint * t;
 
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
+            QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
+                            interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+        }
         // ^ find out how to do this with just catBrush instead of the GetTexture() result
         // possibly with some method in catBrush
         // so that brush settings other than the texture can work

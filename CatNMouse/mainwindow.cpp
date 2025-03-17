@@ -54,13 +54,13 @@ MainWindow::MainWindow(QWidget *parent)
     CreateMenus();
 
     // create the line tool action and connect it to canvasLayer
-    lineAction = new QAction(tr("Line Tool"), this);
-    lineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L)); // Optional shortcut
-    connect(lineAction, &QAction::triggered, backgroundLayer, &CanvasLayer::lineTool);
+    // lineAction = new QAction(tr("Line Tool"), this);
+    // lineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L)); // Optional shortcut
+    // connect(lineAction, &QAction::triggered, backgroundLayer, &CanvasLayer::lineTool);
 
     // add to menu
-    QMenu *toolsMenu = menuBar()->addMenu(tr("Tools"));
-    toolsMenu->addAction(lineAction);
+    // QMenu *toolsMenu = menuBar()->addMenu(tr("Tools"));
+    // toolsMenu->addAction(lineAction);
 }
 
 MainWindow::~MainWindow()
@@ -218,7 +218,10 @@ void MainWindow::open()
 
 void MainWindow::on_lineButton_clicked()
 {
-    lineAction->activate(QAction::Trigger);
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    if (currentLayer){
+        currentLayer->lineTool();
+    }
 }
 
 CanvasLayer* MainWindow::GetCurrentLayer()
