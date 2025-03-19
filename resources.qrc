@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/brush/textures">
+        <file>testtexture.png</file>
+        <file>testtexture2.png</file>
+        <file>testtexturebmp.bmp</file>
+        <file>circletexture.png</file>
+    </qresource>
+</RCC>
