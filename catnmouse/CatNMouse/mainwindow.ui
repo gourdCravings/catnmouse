@@ -161,6 +161,13 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="6">
+       <widget class="QToolButton" name="clearButton">
+        <property name="text">
+         <string>Clr</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </widget>

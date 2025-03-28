@@ -64,6 +64,8 @@ private:
     bool erasing = false;
     bool drawingLine = false;
     bool drawingCurve = false;
+    bool firstMouseMove = true; // please speed im begging u
+    bool firstDraw = true; // track the first drawing operation
     int curveState = 0; // 0: start, 1: control point, 2: end point
     // int myPenWidth = 100;
     int layerIndexP = 0;

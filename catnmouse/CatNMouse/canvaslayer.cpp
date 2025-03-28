@@ -42,6 +42,10 @@ void CanvasLayer::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && scribbling) {
         lastPoint = event->position().toPoint();
+        firstMouseMove = true; // reset for this click
+        if (firstDraw) {
+            firstDraw = false;
+        }
     }
     else if (event->button() == Qt::LeftButton && drawingLine)
     {
@@ -77,9 +81,16 @@ void CanvasLayer::mousePressEvent(QMouseEvent *event)
 
 void CanvasLayer::mouseMoveEvent(QMouseEvent *event)
 {
-    // future: change if/else if to switch statement
-    if ((event->buttons() & Qt::LeftButton) && scribbling && erasing == false)
-        drawLineTo(event->position().toPoint());
+    if ((event->buttons() & Qt::LeftButton) && scribbling && erasing == false) {
+        if (firstMouseMove) {
+            // skip drawing on the first mouse move
+            lastPoint = event->position().toPoint();
+            firstMouseMove = false;
+        } else {
+            // normal drawing on the subsequent mouse moves
+            drawLineTo(event->position().toPoint());
+        }
+    }
     else if ((event->buttons() & Qt::LeftButton) && drawingLine)
     {
         // update the currentLineEnd for preview
@@ -107,7 +118,18 @@ void CanvasLayer::mouseMoveEvent(QMouseEvent *event)
 void CanvasLayer::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && scribbling) {
-        drawLineTo(event->position().toPoint());
+        // only draw if this wasn't just a click without movement
+        if (!firstMouseMove) {
+            drawLineTo(event->position().toPoint());
+        } else {
+            // if single click - draw a dot
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            QPoint newPoint(lastPoint.x() - (catBrush->GetTexture().width() / 2),
+                           lastPoint.y() - (catBrush->GetTexture().height() / 2));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            update();
+        }
     }
     else if (event->button() == Qt::LeftButton && drawingLine) {
         drawLineTo(event->position().toPoint());
@@ -171,39 +193,126 @@ void CanvasLayer::resizeEvent(QResizeEvent *event)
 
 void CanvasLayer::drawLineTo(const QPoint &endPoint)
 {
-    // figure out why texture appears in corner of canvas
-    // because it does???
+    // using xiaolin wu's line algorithm for anti-aliased lines
     QPainter painter(&image);
-    painter.setRenderHint(QPainter::Antialiasing, true); // setting in catbrush?
+    painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-    // using bresenham's line algorithm for some simple interpolation
-    // NOTE: update this to xiaolin wu's algorithm
     QLineF line(lastPoint, endPoint);
-    int steps = qMax(abs(line.dx()), abs(line.dy())); // determine number of steps needed
-
-    for (int i = 0; i <= steps; ++i) {
-        qreal t = static_cast<qreal>(i) / steps;
-        if (!drawingLine == true)
-        {
-            QPoint interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
-
-            QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
-                            interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+    int x0 = line.p1().x();
+    int y0 = line.p1().y();
+    int x1 = line.p2().x();
+    int y1 = line.p2().y();
+    
+    bool steep = abs(y1 - y0) > abs(x1 - x0);
+    
+    if (steep) {
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+    }
+    
+    if (x0 > x1) {
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    float gradient = dy / dx;
+    
+    // handle first endpoint
+    int xend = round(x0);
+    float yend = y0 + gradient * (xend - x0);
+    float xgap = 1 - (x0 + 0.5 - floor(x0 + 0.5));
+    int xpxl1 = xend;
+    int ypxl1 = floor(yend);
+    
+    if (steep) {
+        QPoint newPoint(ypxl1 - (catBrush->GetTexture().width() / 2),
+                       xpxl1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(ypxl1 + 1 - (catBrush->GetTexture().width() / 2),
+                         xpxl1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    } else {
+        QPoint newPoint(xpxl1 - (catBrush->GetTexture().width() / 2),
+                       ypxl1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(xpxl1 - (catBrush->GetTexture().width() / 2),
+                         ypxl1 + 1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    }
+    
+    float intery = yend + gradient;
+    
+    // handle second endpoint
+    xend = round(x1);
+    yend = y1 + gradient * (xend - x1);
+    xgap = x1 + 0.5 - floor(x1 + 0.5);
+    int xpxl2 = xend;
+    int ypxl2 = floor(yend);
+    
+    if (steep) {
+        QPoint newPoint(ypxl2 - (catBrush->GetTexture().width() / 2),
+                       xpxl2 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(ypxl2 + 1 - (catBrush->GetTexture().width() / 2),
+                         xpxl2 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    } else {
+        QPoint newPoint(xpxl2 - (catBrush->GetTexture().width() / 2),
+                       ypxl2 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(xpxl2 - (catBrush->GetTexture().width() / 2),
+                         ypxl2 + 1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    }
+    
+    // main loop
+    if (steep) {
+        for (int x = xpxl1 + 1; x < xpxl2; x++) {
+            QPoint newPoint(floor(intery) - (catBrush->GetTexture().width() / 2),
+                          x - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(1 - (intery - floor(intery)));
             painter.drawPixmap(newPoint, catBrush->GetTexture());
-        } else {
-            QPoint interpolatedPoint = lineStartPoint * (1 - t) + endPoint * t;
-
-            QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
-                            interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+            
+            newPoint = QPoint(floor(intery) + 1 - (catBrush->GetTexture().width() / 2),
+                            x - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(intery - floor(intery));
             painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            intery += gradient;
         }
-        // ^ find out how to do this with just catBrush instead of the GetTexture() result
-        // possibly with some method in catBrush
-        // so that brush settings other than the texture can work
+    } else {
+        for (int x = xpxl1 + 1; x < xpxl2; x++) {
+            QPoint newPoint(x - (catBrush->GetTexture().width() / 2),
+                          floor(intery) - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(1 - (intery - floor(intery)));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            newPoint = QPoint(x - (catBrush->GetTexture().width() / 2),
+                            floor(intery) + 1 - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(intery - floor(intery));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            intery += gradient;
+        }
     }
 
     lastPoint = endPoint;
+    modified = true;
     update();
 
     // if line mode is active and the left button is still held, draw preview
@@ -212,11 +321,6 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
         painter.setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // or a different style
         painter.drawLine(lineStartPoint, currentLineEnd);
     }
-    if (!drawingLine)
-    {
-        lastPoint = endPoint;
-    }
-    update();
 }
 
 void CanvasLayer::resizeImage(QImage *image, const QSize &newSize)

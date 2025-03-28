@@ -56,6 +56,8 @@ private slots:
 
     void on_curveButton_clicked();
 
+    void on_clearButton_clicked();
+
 public slots:
     void UpdateStackOrder(const QList<CanvasLayer*> &newOrder);
     void OnLayerSelected(const QModelIndex &index);

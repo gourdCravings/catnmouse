@@ -254,3 +254,11 @@ void MainWindow::on_curveButton_clicked()
     }
 }
 
+void MainWindow::on_clearButton_clicked()
+{
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    if (currentLayer){
+        currentLayer->clearImage();
+    }
+}
+
