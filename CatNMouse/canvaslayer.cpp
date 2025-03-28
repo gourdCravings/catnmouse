@@ -2,11 +2,14 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QApplication>
+#include <QGraphicsOpacityEffect>
+#include <iostream>
 
 CanvasLayer::CanvasLayer(QObject *parent)
 {
     setAttribute(Qt::WA_StaticContents);
     catBrush = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::red, "round");
+    catEraser = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::blue, "round");
     // // init image with current size
     // QSize initSize = size();
     // if (!initSize.isValid() || initSize.isEmpty())
@@ -18,7 +21,8 @@ CanvasLayer::CanvasLayer(QObject *parent)
 
 void CanvasLayer::SetCatBrush(CatBrush *newCatBrush)
 {
-    catBrush = newCatBrush; // should set catBrush to newCatBrush, doesn't
+    //catBrush = newCatBrush; // should set catBrush to newCatBrush, doesn't
+    std::swap(catBrush, newCatBrush);
 }
 /*void CanvasLayer::setPenColor(const QColor &newColor)
 {
@@ -39,31 +43,49 @@ void CanvasLayer::clearImage()
 
 void CanvasLayer::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton && scribbling) {
-        lastPoint = event->position().toPoint();
-    }
-    else if (event->button() == Qt::LeftButton && drawingLine)
+    if (event->button() == Qt::LeftButton)
     {
-        lineStartPoint = event->position().toPoint();
+        if (scribbling)
+        {
+            lastPoint = event->position().toPoint();
+        }
+        else if (drawingLine)
+        {
+            lineStartPoint = event->position().toPoint();
+        }
+        else if (selecting)
+        {
+            if (!selectTool) // build tool if it doesn't exist yet
+            {
+                selectTool = new SelectionTool(QRubberBand::Rectangle, this);
+            }
+            selectTool->SetOrigin(event->pos());
+            selectTool->setGeometry(QRect(selectTool->GetOrigin(), QSize()));
+            selectTool->show();
+        }
     }
 }
 
 void CanvasLayer::mouseMoveEvent(QMouseEvent *event)
 {
-    // future: change if/else if to switch statement
-    if ((event->buttons() & Qt::LeftButton) && scribbling && erasing == false)
-        drawLineTo(event->position().toPoint());
-    else if ((event->buttons() & Qt::LeftButton) && drawingLine)
+    if (event->buttons() & Qt::LeftButton)
     {
-        // update the currentLineEnd for preview
-        currentLineEnd = event->position().toPoint();
-        // trigger repaint so paintEvent shows preview
-        update();
+        if (scribbling)
+        {
+            drawLineTo(event->position().toPoint());
+        }
+        else if (drawingLine)
+        {
+            // update the currentLineEnd for preview
+            currentLineEnd = event->position().toPoint();
+            // trigger repaint so paintEvent shows preview
+            update();
+        }
+        else if (selecting)
+        {
+            selectTool->setGeometry(QRect(selectTool->GetOrigin(), event->position().toPoint()).normalized());
+        }
     }
-    /*else if (erasing == true)
-    {
-        this->setPenColor(QColor(0, 0, 0, 0));
-    }*/
 }
 
 void CanvasLayer::mouseReleaseEvent(QMouseEvent *event)
@@ -76,6 +98,11 @@ void CanvasLayer::mouseReleaseEvent(QMouseEvent *event)
         drawingLine = false; // reset line drawing mode
         scribbling = true;
     }
+    else if (selecting)
+    {
+        ToggleScribbling(); // find some way to call the last drawing tool used and set it to that instead
+        selectTool->ReleaseStyle();
+    }
 }
 
 void CanvasLayer::paintEvent(QPaintEvent *event)
@@ -84,10 +111,13 @@ void CanvasLayer::paintEvent(QPaintEvent *event)
     QRect dirtyRect = event->rect();
     painter.drawImage(dirtyRect, image, dirtyRect);
 
-    if (drawingLine && (QApplication::mouseButtons() & Qt::LeftButton))
+    if (QApplication::mouseButtons() & Qt::LeftButton)
     {
-        painter.setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // dashed line for preview
-        painter.drawLine(lineStartPoint, mapFromGlobal(QCursor::pos())); // live preview
+        if (drawingLine)
+        {
+            painter.setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // dashed line for preview
+            painter.drawLine(lineStartPoint, mapFromGlobal(QCursor::pos())); // live preview
+        }
     }
 }
 
@@ -108,34 +138,41 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
     // because it does???
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing, true); // setting in catbrush?
-    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
+    if (this->erasing)
+    {
+        //painter.save();
+        painter.setCompositionMode(QPainter::CompositionMode_DestinationOut);
+    }
+    if (selecting)
+    {
+        painter.setClipRect(selectTool->geometry());
+    }
+    else if (selecting  == false &&
+               painter.hasClipping())
+    {
+        qDebug() << "aaaaaaaaaa";
+        painter.setClipRect(image.rect());
+        scribbling = true;
+        qDebug() << "aaaaaaaaaa";
+    }
     // using bresenham's line algorithm for some simple interpolation
     // NOTE: update this to xiaolin wu's algorithm
+    // also turn this into a method please
     QLineF line(lastPoint, endPoint);
     int steps = qMax(abs(line.dx()), abs(line.dy())); // determine number of steps needed
 
     for (int i = 0; i <= steps; ++i) {
         qreal t = static_cast<qreal>(i) / steps;
-        if (!drawingLine == true)
-        {
-            QPoint interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
+        QPoint interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
 
-            QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
-                            interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
-            painter.drawPixmap(newPoint, catBrush->GetTexture());
-        } else {
-            QPoint interpolatedPoint = lineStartPoint * (1 - t) + endPoint * t;
+        QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
+                        interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
 
-            QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
-                            interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
-            painter.drawPixmap(newPoint, catBrush->GetTexture());
-        }
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
         // ^ find out how to do this with just catBrush instead of the GetTexture() result
         // possibly with some method in catBrush
         // so that brush settings other than the texture can work
     }
-
     lastPoint = endPoint;
     update();
 
@@ -150,6 +187,7 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
         lastPoint = endPoint;
     }
     update();
+
 }
 
 void CanvasLayer::resizeImage(QImage *image, const QSize &newSize)
@@ -194,4 +232,39 @@ bool CanvasLayer::saveImage(const QString &fileName, const char *fileFormat)
         return true;
     }
     return false;
+}
+
+void CanvasLayer::SwapBrushes(CatBrush **brushA, CatBrush **brushB)
+{
+    CatBrush *temp;
+
+    temp = *brushA;
+    *brushA = *brushB;
+    *brushB = temp;
+}
+
+void CanvasLayer::ToggleSelecting()
+{
+    this->selecting = !selecting;
+    if (selecting == true)
+    {
+        ToggleScribbling();
+    } else
+    {
+        selectTool->hide();
+        selectTool = nullptr;
+    }
+}
+
+void CanvasLayer::ToggleScribbling()
+{
+
+    scribbling = !scribbling;
+}
+
+// currently fills entire canvas -- rework this as paint bucket tool
+void CanvasLayer::FillColor(QColor color)
+{
+    image = QImage(this->size(), QImage::Format_ARGB32);
+    image.fill(Qt::white);
 }

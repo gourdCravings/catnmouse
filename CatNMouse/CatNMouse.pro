@@ -10,25 +10,35 @@ CONFIG += c++17
 
 SOURCES += \
     brushdialog.cpp \
+    canvasdialog.cpp \
     canvaslayer.cpp \
+    canvaswidget.cpp \
     catbrush.cpp \
     catbrush_OLD.cpp \
+    colordialog.cpp \
     layerlayout.cpp \
     layermodel.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    selectiontool.cpp
 
 HEADERS += \
     brushdialog.h \
+    canvasdialog.h \
     canvaslayer.h \
+    canvaswidget.h \
     catbrush.h \
     catbrush_OLD.h \
+    colordialog.h \
     layerlayout.h \
     layermodel.h \
-    mainwindow.h
+    mainwindow.h \
+    selectiontool.h
 
 FORMS += \
     brushdialog.ui \
+    canvasdialog.ui \
+    colordialog.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -1,10 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "colordialog.h"
+#include "canvasdialog.h"
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QFileDialog>
+#include <QInputDialog>
 #include <QImageWriter>
 #include <QLabel>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,7 +19,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    CanvasDialog *canvasDialog = new CanvasDialog(this);
+    canvasDialog->setWindowModality(Qt::WindowModality::ApplicationModal);
+    canvasDialog->exec();
+
     // set up stack
+    stack = new QStackedLayout(ui->canvasWidget);
     stack->setStackingMode(QStackedLayout::StackAll);
     ui->canvasWidget->setLayout(stack);
     // set up model
@@ -29,9 +38,10 @@ MainWindow::MainWindow(QWidget *parent)
     //         stack, SLOT(setCurrentIndex(int)));
     //connect(ui->widthSpin, SIGNAL(valueChanged(int)), GetCurrentLayer()->GetCatBrush(), SLOT(SetBrushWidth(int)));
     // set up background layer
-    CanvasLayer *backgroundLayer = new CanvasLayer(this);
-    backgroundLayer->setPalette(Qt::white);
-    backgroundLayer->setAutoFillBackground(true);
+    CanvasLayer *backgroundLayer = new CanvasLayer(ui->canvasWidget);
+    backgroundLayer->FillColor(Qt::white);
+    // backgroundLayer->setPalette(Qt::white);
+    // backgroundLayer->setAutoFillBackground(true);
     backgroundLayer->SetLayerName("Background");
     stack->addWidget(backgroundLayer);
     model->AddLayer(backgroundLayer);
@@ -54,13 +64,13 @@ MainWindow::MainWindow(QWidget *parent)
     CreateMenus();
 
     // create the line tool action and connect it to canvasLayer
-    // lineAction = new QAction(tr("Line Tool"), this);
-    // lineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L)); // Optional shortcut
-    // connect(lineAction, &QAction::triggered, backgroundLayer, &CanvasLayer::lineTool);
+    lineAction = new QAction(tr("Line Tool"), this);
+    lineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L)); // Optional shortcut
+    connect(lineAction, &QAction::triggered, backgroundLayer, &CanvasLayer::lineTool);
 
     // add to menu
-    // QMenu *toolsMenu = menuBar()->addMenu(tr("Tools"));
-    // toolsMenu->addAction(lineAction);
+    QMenu *toolsMenu = menuBar()->addMenu(tr("Tools"));
+    toolsMenu->addAction(lineAction);
 }
 
 MainWindow::~MainWindow()
@@ -85,8 +95,8 @@ void MainWindow::on_addLayerBtn_clicked()
 
 void MainWindow::on_eraseButton_clicked()
 {
-    CanvasLayer currentLayer = stack->currentWidget();
-    currentLayer.setErasing(true);
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    currentLayer->ToggleErasing();
 }
 
 
@@ -218,10 +228,7 @@ void MainWindow::open()
 
 void MainWindow::on_lineButton_clicked()
 {
-    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
-    if (currentLayer){
-        currentLayer->lineTool();
-    }
+    lineAction->activate(QAction::Trigger);
 }
 
 CanvasLayer* MainWindow::GetCurrentLayer()
@@ -245,3 +252,22 @@ void MainWindow::on_widthSpin_valueChanged(int arg1)
     currentLayer->SetCatBrush(currentBrush);
 }
 
+void MainWindow::on_colorSelectButton_clicked()
+{
+    ColorDialog *colorDialog = new ColorDialog(this);
+    colorDialog->setWindowModality(Qt::WindowModality::WindowModal);
+    colorDialog->show();
+}
+
+void MainWindow::on_selectButton_clicked()
+{
+    // get current layer
+    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
+    // toggle selection
+    currentLayer->ToggleSelecting();
+}
+
+CanvasWidget* MainWindow::GetCanvas()
+{
+    return ui->canvasWidget;
+}

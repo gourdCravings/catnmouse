@@ -15,6 +15,7 @@ public:
 
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
+    QList<CanvasLayer*> GetData() { return listData; }
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
 

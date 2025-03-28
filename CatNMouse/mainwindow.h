@@ -12,6 +12,7 @@
 #include "layermodel.h"
 #include <QSortFilterProxyModel>
 #include "brushdialog.h"
+#include "canvaswidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -29,6 +30,7 @@ public:
     QStackedLayout* GetStack() const { return stack; }
 
     CanvasLayer* GetCurrentLayer();
+    CanvasWidget* GetCanvas();
 
 protected:
     //void keyPressEvent(QKeyEvent *event) override;
@@ -53,6 +55,10 @@ private slots:
     void on_lineButton_clicked();
 
     void on_widthSpin_valueChanged(int arg1);
+
+    void on_colorSelectButton_clicked();
+
+    void on_selectButton_clicked();
 
 public slots:
     void UpdateStackOrder(const QList<CanvasLayer*> &newOrder);
@@ -86,5 +92,7 @@ private:
     void CreateActions();
     void CreateMenus();
     void Save();
+
+    void Erase();
 };
 #endif // MAINWINDOW_H
