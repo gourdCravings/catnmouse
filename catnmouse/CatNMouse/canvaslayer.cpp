@@ -193,122 +193,41 @@ void CanvasLayer::resizeEvent(QResizeEvent *event)
 
 void CanvasLayer::drawLineTo(const QPoint &endPoint)
 {
-    // using xiaolin wu's line algorithm for anti-aliased lines
+    // PLEASE WORK I FUCKING BEG (my begging paid off finally)
+    if (firstDraw) {
+        lastPoint = endPoint;
+        firstDraw = false;
+        return;
+    }
+
     QPainter painter(&image);
-    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::Antialiasing, true); // setting in catbrush?
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
+    // using bresenham's line algorithm for some simple interpolation
+    // NOTE: update this to xiaolin wu's algorithm
     QLineF line(lastPoint, endPoint);
-    int x0 = line.p1().x();
-    int y0 = line.p1().y();
-    int x1 = line.p2().x();
-    int y1 = line.p2().y();
+    int steps = qMax(abs(line.dx()), abs(line.dy())); // determine number of steps needed
     
-    bool steep = abs(y1 - y0) > abs(x1 - x0);
-    
-    if (steep) {
-        std::swap(x0, y0);
-        std::swap(x1, y1);
-    }
-    
-    if (x0 > x1) {
-        std::swap(x0, x1);
-        std::swap(y0, y1);
-    }
-    
-    float dx = x1 - x0;
-    float dy = y1 - y0;
-    float gradient = dy / dx;
-    
-    // handle first endpoint
-    int xend = round(x0);
-    float yend = y0 + gradient * (xend - x0);
-    float xgap = 1 - (x0 + 0.5 - floor(x0 + 0.5));
-    int xpxl1 = xend;
-    int ypxl1 = floor(yend);
-    
-    if (steep) {
-        QPoint newPoint(ypxl1 - (catBrush->GetTexture().width() / 2),
-                       xpxl1 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    steps = qMax(1, steps);
+
+    for (int i = 0; i <= steps; ++i) {
+        qreal t = steps > 0 ? static_cast<qreal>(i) / steps : 0;
+        QPoint interpolatedPoint;
         
-        newPoint = QPoint(ypxl1 + 1 - (catBrush->GetTexture().width() / 2),
-                         xpxl1 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((yend - floor(yend)) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-    } else {
-        QPoint newPoint(xpxl1 - (catBrush->GetTexture().width() / 2),
-                       ypxl1 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-        
-        newPoint = QPoint(xpxl1 - (catBrush->GetTexture().width() / 2),
-                         ypxl1 + 1 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((yend - floor(yend)) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-    }
-    
-    float intery = yend + gradient;
-    
-    // handle second endpoint
-    xend = round(x1);
-    yend = y1 + gradient * (xend - x1);
-    xgap = x1 + 0.5 - floor(x1 + 0.5);
-    int xpxl2 = xend;
-    int ypxl2 = floor(yend);
-    
-    if (steep) {
-        QPoint newPoint(ypxl2 - (catBrush->GetTexture().width() / 2),
-                       xpxl2 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-        
-        newPoint = QPoint(ypxl2 + 1 - (catBrush->GetTexture().width() / 2),
-                         xpxl2 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((yend - floor(yend)) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-    } else {
-        QPoint newPoint(xpxl2 - (catBrush->GetTexture().width() / 2),
-                       ypxl2 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-        
-        newPoint = QPoint(xpxl2 - (catBrush->GetTexture().width() / 2),
-                         ypxl2 + 1 - (catBrush->GetTexture().height() / 2));
-        painter.setOpacity((yend - floor(yend)) * xgap);
-        painter.drawPixmap(newPoint, catBrush->GetTexture());
-    }
-    
-    // main loop
-    if (steep) {
-        for (int x = xpxl1 + 1; x < xpxl2; x++) {
-            QPoint newPoint(floor(intery) - (catBrush->GetTexture().width() / 2),
-                          x - (catBrush->GetTexture().height() / 2));
-            painter.setOpacity(1 - (intery - floor(intery)));
-            painter.drawPixmap(newPoint, catBrush->GetTexture());
-            
-            newPoint = QPoint(floor(intery) + 1 - (catBrush->GetTexture().width() / 2),
-                            x - (catBrush->GetTexture().height() / 2));
-            painter.setOpacity(intery - floor(intery));
-            painter.drawPixmap(newPoint, catBrush->GetTexture());
-            
-            intery += gradient;
+        if (!drawingLine) {
+            interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
+        } else {
+            interpolatedPoint = lineStartPoint * (1 - t) + endPoint * t;
         }
-    } else {
-        for (int x = xpxl1 + 1; x < xpxl2; x++) {
-            QPoint newPoint(x - (catBrush->GetTexture().width() / 2),
-                          floor(intery) - (catBrush->GetTexture().height() / 2));
-            painter.setOpacity(1 - (intery - floor(intery)));
-            painter.drawPixmap(newPoint, catBrush->GetTexture());
-            
-            newPoint = QPoint(x - (catBrush->GetTexture().width() / 2),
-                            floor(intery) + 1 - (catBrush->GetTexture().height() / 2));
-            painter.setOpacity(intery - floor(intery));
-            painter.drawPixmap(newPoint, catBrush->GetTexture());
-            
-            intery += gradient;
-        }
+
+        QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
+                       interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+
+        // ^ find out how to do this with just catBrush instead of the GetTexture() result
+        // possibly with some method in catBrush
+        // so that brush settings other than the texture can work
     }
 
     lastPoint = endPoint;
