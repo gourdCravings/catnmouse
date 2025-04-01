@@ -1,4 +1,5 @@
 #include "canvaslayer.h"
+#include "mainwindow.h"
 #include <QMouseEvent>
 #include <QPainter>
 #include <QApplication>
@@ -204,40 +205,144 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
     painter.setRenderHint(QPainter::Antialiasing, true); // setting in catbrush?
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-    // using bresenham's line algorithm for some simple interpolation
-    // NOTE: update this to xiaolin wu's algorithm
-    QLineF line(lastPoint, endPoint);
-    int steps = qMax(abs(line.dx()), abs(line.dy())); // determine number of steps needed
+    // stupid line tool fucking broke again
+    QPoint startPoint = drawingLine ? lineStartPoint : lastPoint;
+
+    // using xiaolin wu's line algorithm for anti-aliased lines
+    QLineF line(startPoint, endPoint);
+    int x0 = line.p1().x();
+    int y0 = line.p1().y();
+    int x1 = line.p2().x();
+    int y1 = line.p2().y();
     
-    steps = qMax(1, steps);
-
-    for (int i = 0; i <= steps; ++i) {
-        qreal t = steps > 0 ? static_cast<qreal>(i) / steps : 0;
-        QPoint interpolatedPoint;
-        
-        if (!drawingLine) {
-            interpolatedPoint = lastPoint * (1 - t) + endPoint * t;
-        } else {
-            interpolatedPoint = lineStartPoint * (1 - t) + endPoint * t;
-        }
-
-        QPoint newPoint(interpolatedPoint.x() - (catBrush->GetTexture().width() / 2),
-                       interpolatedPoint.y() - (catBrush->GetTexture().height() / 2));
+    // determine if the line is steep (slope > 1)
+    // if it is, swap x and y coordinates
+    bool steep = abs(y1 - y0) > abs(x1 - x0);
+    
+    if (steep) {
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+    }
+    
+    // make sure we are always drawing from left to right
+    if (x0 > x1) {
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    
+    // calculate the slope and other key variables
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    float gradient = dy / dx;
+    
+    // handle the first endpoint
+    // we are using partial opacity at the endpoints in order to reduce artifacts
+    int xend = round(x0);
+    float yend = y0 + gradient * (xend - x0);
+    float xgap = 1 - (x0 + 0.5 - floor(x0 + 0.5)); // calculate opacity for the first endpoint
+    int xpxl1 = xend;
+    int ypxl1 = floor(yend);
+    
+    // draw the first endpoint with proper opacity
+    if (steep) {
+        // for steep lines, x and y are swapped
+        QPoint newPoint(ypxl1 - (catBrush->GetTexture().width() / 2),
+                       xpxl1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
         painter.drawPixmap(newPoint, catBrush->GetTexture());
-
-        // ^ find out how to do this with just catBrush instead of the GetTexture() result
-        // possibly with some method in catBrush
-        // so that brush settings other than the texture can work
+        
+        newPoint = QPoint(ypxl1 + 1 - (catBrush->GetTexture().width() / 2),
+                         xpxl1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    } else {
+        // for shallow lines, coordinates remain normal
+        QPoint newPoint(xpxl1 - (catBrush->GetTexture().width() / 2),
+                       ypxl1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(xpxl1 - (catBrush->GetTexture().width() / 2),
+                         ypxl1 + 1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    }
+    
+    // initialize the interpolated y coordinate
+    float intery = yend + gradient;
+    
+    // handle second endpoint
+    xend = round(x1);
+    yend = y1 + gradient * (xend - x1);
+    xgap = x1 + 0.5 - floor(x1 + 0.5);
+    int xpxl2 = xend;
+    int ypxl2 = floor(yend);
+    
+    // draw the second endpoint
+    if (steep) {
+        QPoint newPoint(ypxl2 - (catBrush->GetTexture().width() / 2),
+                       xpxl2 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(ypxl2 + 1 - (catBrush->GetTexture().width() / 2),
+                         xpxl2 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    } else {
+        QPoint newPoint(xpxl2 - (catBrush->GetTexture().width() / 2),
+                       ypxl2 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((1 - (yend - floor(yend))) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+        
+        newPoint = QPoint(xpxl2 - (catBrush->GetTexture().width() / 2),
+                         ypxl2 + 1 - (catBrush->GetTexture().height() / 2));
+        painter.setOpacity((yend - floor(yend)) * xgap);
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    }
+    
+    // main drawing loop - draw all points between the endpoints
+    // for each x, draw two y pixels with appropriate opacity
+    if (steep) {
+        for (int x = xpxl1 + 1; x < xpxl2; x++) {
+            // calculate the coverage of the two pixels straddling the line
+            QPoint newPoint(floor(intery) - (catBrush->GetTexture().width() / 2),
+                          x - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(1 - (intery - floor(intery))); // main pixel opacity
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            newPoint = QPoint(floor(intery) + 1 - (catBrush->GetTexture().width() / 2),
+                            x - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(intery - floor(intery)); // adjacent pixel opacity
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            intery += gradient; // move to next point along the line
+        }
+    } else {
+        for (int x = xpxl1 + 1; x < xpxl2; x++) {
+            QPoint newPoint(x - (catBrush->GetTexture().width() / 2),
+                          floor(intery) - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(1 - (intery - floor(intery)));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            newPoint = QPoint(x - (catBrush->GetTexture().width() / 2),
+                            floor(intery) + 1 - (catBrush->GetTexture().height() / 2));
+            painter.setOpacity(intery - floor(intery));
+            painter.drawPixmap(newPoint, catBrush->GetTexture());
+            
+            intery += gradient;
+        }
     }
 
+    // update the last point for the next segment
     lastPoint = endPoint;
     modified = true;
     update();
 
-    // if line mode is active and the left button is still held, draw preview
+    // draw preview line if in line tool mode
     if (drawingLine && (QApplication::mouseButtons() & Qt::LeftButton))
     {
-        painter.setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // or a different style
+        painter.setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine));
         painter.drawLine(lineStartPoint, currentLineEnd);
     }
 }
@@ -290,10 +395,32 @@ void CanvasLayer::curveTool()
 
 bool CanvasLayer::saveImage(const QString &fileName, const char *fileFormat)
 {
-    QImage visibleImage = image;
-    resizeImage(&visibleImage, size());
+    // getting the main window to access all layers
+    QWidget* parentWidget = this->parentWidget();
+    while (parentWidget && !qobject_cast<MainWindow*>(parentWidget)) {
+        parentWidget = parentWidget->parentWidget();
+    }
+    MainWindow* mainWindow = qobject_cast<MainWindow*>(parentWidget);
 
-    if (visibleImage.save(fileName, fileFormat)) {
+    // grab all the layers from the stack
+    QStackedLayout* stack = mainWindow->GetStack();
+    if (!stack) return false;
+
+    // make a new image to composite all layers
+    QImage compositeImage(size(), QImage::Format_ARGB32);
+    compositeImage.fill(Qt::transparent);
+    QPainter compositePainter(&compositeImage);
+    
+    // paint all the layers from bottom to top
+    for (int i = 0; i < stack->count(); ++i) {
+        CanvasLayer* layer = qobject_cast<CanvasLayer*>(stack->widget(i));
+        if (layer && layer->isVisible()) {
+            compositePainter.drawImage(0, 0, layer->image);
+        }
+    }
+    
+    // save the composited image
+    if (compositeImage.save(fileName, fileFormat)) {
         modified = false;
         return true;
     }
