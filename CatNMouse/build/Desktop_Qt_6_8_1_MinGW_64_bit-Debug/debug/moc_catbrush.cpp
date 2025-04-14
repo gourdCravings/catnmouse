@@ -38,7 +38,7 @@ struct qt_meta_tag_ZN8CatBrushE_t {};
 #ifdef QT_MOC_HAS_STRINGDATA
 static constexpr auto qt_meta_stringdata_ZN8CatBrushE = QtMocHelpers::stringData(
     "CatBrush",
-    "SetBrushWidth",
+    "WidthSlot",
     "",
     "newBrushWidth"
 );
@@ -77,7 +77,7 @@ Q_CONSTINIT const QMetaObject CatBrush::staticMetaObject = { {
     qt_incomplete_metaTypeArray<qt_meta_tag_ZN8CatBrushE_t,
         // Q_OBJECT / Q_GADGET
         QtPrivate::TypeAndForceComplete<CatBrush, std::true_type>,
-        // method 'SetBrushWidth'
+        // method 'WidthSlot'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         QtPrivate::TypeAndForceComplete<int, std::false_type>
     >,
@@ -89,7 +89,7 @@ void CatBrush::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, vo
     auto *_t = static_cast<CatBrush *>(_o);
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: _t->SetBrushWidth((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 0: _t->WidthSlot((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
         default: ;
         }
     }

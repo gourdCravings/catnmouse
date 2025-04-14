@@ -11,12 +11,15 @@
 #include "catbrush.h"
 #include <QPainter>
 #include "selectiontool.h"
+#include <QGraphicsWidget>
+#include <QGraphicsSceneMouseEvent>
+#include <algorithm>
 
-class CanvasLayer : public QWidget
+class CanvasLayer : public QGraphicsWidget
 {
     Q_OBJECT
 public:
-    CanvasLayer(QObject *parent = nullptr);
+    explicit CanvasLayer(QGraphicsItem *parent = nullptr);
     //virtual ~CanvasLayer() {};
     // properties
     //void setPenColor(const QColor &newColor);
@@ -36,9 +39,12 @@ public:
     // setters
     void SetCatBrush(CatBrush *newCatBrush);
     void SetLayerName(QString name);
-    void ToggleErasing() { this->erasing = !erasing; SwapBrushes(&catBrush, &catEraser); }
+    void ToggleErasing() {
+        this->erasing = !erasing; std::swap(catBrush, catEraser);
+    }
     void ToggleSelecting();
     void ToggleScribbling();
+    void ToggleFilling() {filling = !filling;}
 
     void FillColor(QColor color);
 
@@ -57,14 +63,14 @@ public slots:
 
 
 protected:
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    void resizeEvent(QGraphicsSceneResizeEvent *event) override;
 
 private:
-    QGraphicsPathItem* drawLineTo(const QPoint &endPoint);
+    void drawLineTo(const QPoint &endPoint);
     void resizeImage(QImage *image, const QSize &newSize);
     void SwapBrushes(CatBrush **brushA, CatBrush **brushB);
 
@@ -76,6 +82,7 @@ private:
     bool drawingLine = false;
     bool selecting = false;
     bool oldSelecting = false;
+    bool filling = false;
 
     // int myPenWidth = 100;
     int layerIndexP = 0;
@@ -89,6 +96,7 @@ private:
     SelectionTool *selectTool = nullptr;
     QString layerName;
     QList<QGraphicsPathItem*> pixelList;
+    QColor fillColor;
     // QPixmap myTexture = QPixmap(":/brush/textures/testtexture.png").scaledToWidth(myPenWidth);
     //QBrush myBrush = QBrush(myPenColor, myTexture);
     //QPen myPen = QPen(myBrush, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);

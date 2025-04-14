@@ -3,6 +3,7 @@
 
 #include <QGraphicsPixmapItem>
 #include <QBitmap>
+#include <QDebug>
 
 class CatBrush : public QGraphicsPixmapItem
 {
@@ -19,13 +20,14 @@ public:
     // setters
     void SetTexture(QString newPath);
     void SetTexture(QPixmap newTexture);
-    void SetBrushWidth(int newBrushWidth);
+    // void SetBrush(CatBrush newBrush) { this = newBrush };
+    void SetWidth(int newBrushWidth);
     void SetAliasing(bool newAlias);
     void SetOpacity(float opacity, QPixmap brushTexture);
     void SetBrushColor(QColor newBrushColor);
 
-// public slots:
-//     void widthSlot(int newBrushWidth);
+public slots:
+    void WidthSlot(int newBrushWidth) { SetWidth(newBrushWidth); }
 private:
     QString texturePath;
     QPixmap texture;

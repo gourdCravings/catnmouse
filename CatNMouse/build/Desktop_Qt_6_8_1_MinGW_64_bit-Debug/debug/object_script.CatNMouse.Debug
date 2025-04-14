@@ -1,6 +1,7 @@
 debug/brushdialog.o
 debug/canvasdialog.o
 debug/canvaslayer.o
+debug/canvasview.o
 debug/canvaswidget.o
 debug/catbrush.o
 debug/catbrush_OLD.o
@@ -14,6 +15,7 @@ debug/qrc_resources.o
 debug/moc_brushdialog.o
 debug/moc_canvasdialog.o
 debug/moc_canvaslayer.o
+debug/moc_canvasview.o
 debug/moc_canvaswidget.o
 debug/moc_colordialog.o
 debug/moc_layermodel.o

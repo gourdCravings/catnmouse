@@ -3,7 +3,8 @@
 
 #include <QDialog>
 #include <QAbstractButton>
-#include "canvaswidget.h"
+#include "canvasview.h"
+#include "mainwindow.h"
 
 namespace Ui {
 class CanvasDialog;
@@ -20,13 +21,17 @@ public:
     int GetHeight() { return canvasHeight; }
 
 private slots:
-    void on_buttonBox_clicked(QAbstractButton *button);
+    void on_buttonBox_accepted();
+
+    void on_buttonBox_rejected();
 
 private:
     Ui::CanvasDialog *ui;
     int canvasWidth;
     int canvasHeight;
-    CanvasWidget *canvasWidget;
+    CanvasView *canvasView;
+    MainWindow *mainWindow;
+
 };
 
 #endif // CANVASDIALOG_H

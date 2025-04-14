@@ -27,6 +27,7 @@ public:
 
 signals:
     void LayersReordered(const QList<CanvasLayer*> &newOrder);
+    void LayerAdded(CanvasLayer* newLayer);
 
 private:
     QList<CanvasLayer*> listData;

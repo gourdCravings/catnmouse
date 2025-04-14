@@ -68,7 +68,7 @@ Q_CONSTINIT static const uint qt_meta_data_ZN11CanvasLayerE[] = {
 };
 
 Q_CONSTINIT const QMetaObject CanvasLayer::staticMetaObject = { {
-    QMetaObject::SuperData::link<QWidget::staticMetaObject>(),
+    QMetaObject::SuperData::link<QGraphicsWidget::staticMetaObject>(),
     qt_meta_stringdata_ZN11CanvasLayerE.offsetsAndSizes,
     qt_meta_data_ZN11CanvasLayerE,
     qt_static_metacall,
@@ -104,12 +104,12 @@ void *CanvasLayer::qt_metacast(const char *_clname)
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_ZN11CanvasLayerE.stringdata0))
         return static_cast<void*>(this);
-    return QWidget::qt_metacast(_clname);
+    return QGraphicsWidget::qt_metacast(_clname);
 }
 
 int CanvasLayer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QWidget::qt_metacall(_c, _id, _a);
+    _id = QGraphicsWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {

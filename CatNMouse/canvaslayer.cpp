@@ -4,19 +4,16 @@
 #include <QApplication>
 #include <QGraphicsOpacityEffect>
 #include <iostream>
+#include <QTimer>
 
-CanvasLayer::CanvasLayer(QObject *parent)
+CanvasLayer::CanvasLayer(QGraphicsItem *parent)
+: QGraphicsWidget(parent)
 {
-    setAttribute(Qt::WA_StaticContents);
+    //setAttribute(Qt::WA_StaticContents);
     catBrush = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::red, "round");
     catEraser = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::blue, "round");
-    // // init image with current size
-    // QSize initSize = size();
-    // if (!initSize.isValid() || initSize.isEmpty())
-    //     initSize = QSize(640, 480); // default size
-
-    // image = QImage(initSize, QImage::Format_ARGB32);
-    // image.fill(Qt::white); // let user decide this
+    setFlag(QGraphicsItem::ItemIsMovable);
+    setFlag(QGraphicsItem::ItemIsSelectable);
 }
 
 void CanvasLayer::SetCatBrush(CatBrush *newCatBrush)
@@ -41,60 +38,60 @@ void CanvasLayer::clearImage()
     update();
 }
 
-void CanvasLayer::mousePressEvent(QMouseEvent *event)
+void CanvasLayer::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
     {
         if (scribbling)
         {
-            lastPoint = event->position().toPoint();
+            lastPoint = event->pos().toPoint();
         }
         else if (drawingLine)
         {
-            lineStartPoint = event->position().toPoint();
+            lineStartPoint = event->pos().toPoint();
         }
         else if (selecting)
         {
             if (!selectTool) // build tool if it doesn't exist yet
             {
-                selectTool = new SelectionTool(QRubberBand::Rectangle, this);
+                selectTool = new SelectionTool(QRubberBand::Rectangle, nullptr);
             }
-            selectTool->SetOrigin(event->pos());
+            selectTool->SetOrigin(event->pos().toPoint());
             selectTool->setGeometry(QRect(selectTool->GetOrigin(), QSize()));
             selectTool->show();
         }
     }
 }
 
-void CanvasLayer::mouseMoveEvent(QMouseEvent *event)
+void CanvasLayer::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
     {
         if (scribbling)
         {
-            drawLineTo(event->position().toPoint());
+            drawLineTo(event->pos().toPoint());
         }
         else if (drawingLine)
         {
             // update the currentLineEnd for preview
-            currentLineEnd = event->position().toPoint();
+            currentLineEnd = event->pos().toPoint();
             // trigger repaint so paintEvent shows preview
             update();
         }
         else if (selecting)
         {
-            selectTool->setGeometry(QRect(selectTool->GetOrigin(), event->position().toPoint()).normalized());
+            selectTool->setGeometry(QRect(selectTool->GetOrigin(), event->pos().toPoint()).normalized());
         }
     }
 }
 
-void CanvasLayer::mouseReleaseEvent(QMouseEvent *event)
+void CanvasLayer::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && scribbling) {
-        drawLineTo(event->position().toPoint());
+        drawLineTo(event->pos().toPoint());
     }
     else if (drawingLine) {
-        drawLineTo(event->position().toPoint());
+        drawLineTo(event->pos().toPoint());
         drawingLine = false; // reset line drawing mode
         scribbling = true;
     }
@@ -105,31 +102,37 @@ void CanvasLayer::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void CanvasLayer::paintEvent(QPaintEvent *event)
+void CanvasLayer::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPainter painter(this);
-    QRect dirtyRect = event->rect();
-    painter.drawImage(dirtyRect, image, dirtyRect);
+    Q_UNUSED(widget);
 
+    QRectF dirtyRect = option->rect; // Get the invalidated area
+
+    // Draw the image onto the widget
+    painter->drawImage(dirtyRect, image, dirtyRect);
+
+    // Check if the left mouse button is pressed
     if (QApplication::mouseButtons() & Qt::LeftButton)
     {
         if (drawingLine)
         {
-            painter.setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // dashed line for preview
-            painter.drawLine(lineStartPoint, mapFromGlobal(QCursor::pos())); // live preview
+            painter->setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // Dashed line for preview
+            painter->drawLine(lineStartPoint, mapFromScene(QCursor::pos())); // Live preview
         }
     }
 }
 
-void CanvasLayer::resizeEvent(QResizeEvent *event)
+
+void CanvasLayer::resizeEvent(QGraphicsSceneResizeEvent *event)
 {
-    if (width() > image.width() || height() > image.height()) {
-        int newWidth = qMax(width() + 128, image.width());
-        int newHeight = qMax(height() + 128, image.height());
-        resizeImage(&image, QSize(newWidth, newHeight));
-        update();
-    }
-    QWidget::resizeEvent(event);
+    // code's broken, fix later
+    // if (this->width > image.width() || height() > image.height()) {
+    //     int newWidth = qMax(width() + 128, image.width());
+    //     int newHeight = qMax(height() + 128, image.height());
+    //     resizeImage(&image, QSize(newWidth, newHeight));
+    //     update();
+    // }
+    // QWidget::resizeEvent(event);
 }
 
 void CanvasLayer::drawLineTo(const QPoint &endPoint)
@@ -225,7 +228,7 @@ void CanvasLayer::lineTool()
 bool CanvasLayer::saveImage(const QString &fileName, const char *fileFormat)
 {
     QImage visibleImage = image;
-    resizeImage(&visibleImage, size());
+    // resizeImage(&visibleImage, size());
 
     if (visibleImage.save(fileName, fileFormat)) {
         modified = false;
@@ -265,6 +268,15 @@ void CanvasLayer::ToggleScribbling()
 // currently fills entire canvas -- rework this as paint bucket tool
 void CanvasLayer::FillColor(QColor color)
 {
-    image = QImage(this->size(), QImage::Format_ARGB32);
-    image.fill(Qt::white);
+    filling = true;
+    if (image.isNull())
+    {
+        image = QImage(this->preferredSize().toSize(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(color);
+    }
+    update();
+
+    //QMetaObject::invokeMethod(this, "ToggleFilling", Qt::QueuedConnection);
+    // image = QImage(this->size().toSize(), QImage::Format_ARGB32);
+    // image.fill(Qt::white);
 }

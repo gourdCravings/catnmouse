@@ -1,4 +1,5 @@
 #include "layermodel.h"
+#include <QDebug>
 
 LayerModel::LayerModel(QObject *parent)
     : QAbstractListModel{parent}
@@ -53,6 +54,7 @@ void LayerModel::AddLayer(CanvasLayer *newLayer)
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     listData << newLayer;
     endInsertRows();
+    emit LayerAdded(newLayer);
 }
 
 bool LayerModel::moveRows(const QModelIndex &sourceParent, int sourceRow, int count,
@@ -91,6 +93,7 @@ CanvasLayer* LayerModel::GetLayerAtIndex(int index) const
     if (index >= 0 && index < listData.size()) {
         return listData.at(index);
     }
+    qDebug() << "ERROR: Layer at index does not exist.";
     return nullptr;
 }
 

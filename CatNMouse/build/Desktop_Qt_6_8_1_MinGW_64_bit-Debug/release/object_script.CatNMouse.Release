@@ -1,6 +1,7 @@
 release/brushdialog.o
 release/canvasdialog.o
 release/canvaslayer.o
+release/canvasview.o
 release/canvaswidget.o
 release/catbrush.o
 release/catbrush_OLD.o
@@ -14,6 +15,7 @@ release/qrc_resources.o
 release/moc_brushdialog.o
 release/moc_canvasdialog.o
 release/moc_canvaslayer.o
+release/moc_canvasview.o
 release/moc_canvaswidget.o
 release/moc_colordialog.o
 release/moc_layermodel.o

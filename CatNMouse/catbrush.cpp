@@ -8,6 +8,7 @@ CatBrush::CatBrush(QString textureName, int brushSize, QColor color, QString nam
     brushWidth = brushSize;
     // set brushColor
     brushColor = color;
+    brushWidth = brushSize;
     // set brushOpacity
     brushOpacity = opacity;
     // set texture
@@ -24,7 +25,6 @@ void CatBrush::SetTexture(QString newPath)
     texturePath = newPath;
     QPixmap newTexture = QPixmap(texturePath);
     SetTexture(newTexture);
-
     // color texture
     // get mask
     //QBitmap textureMask = texture.mask();
@@ -90,7 +90,7 @@ void CatBrush::SetTexture(QPixmap newTexture)
 //     this->setPixmap(texture);
 // }
 
-void CatBrush::SetBrushWidth(int newWidth)
+void CatBrush::SetWidth(int newWidth)
 {
     brushWidth = newWidth;
     SetTexture(texturePath);

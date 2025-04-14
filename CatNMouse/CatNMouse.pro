@@ -12,6 +12,7 @@ SOURCES += \
     brushdialog.cpp \
     canvasdialog.cpp \
     canvaslayer.cpp \
+    canvasview.cpp \
     canvaswidget.cpp \
     catbrush.cpp \
     catbrush_OLD.cpp \
@@ -26,6 +27,7 @@ HEADERS += \
     brushdialog.h \
     canvasdialog.h \
     canvaslayer.h \
+    canvasview.h \
     canvaswidget.h \
     catbrush.h \
     catbrush_OLD.h \

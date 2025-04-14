@@ -1,14 +1,18 @@
 #include "canvasdialog.h"
 #include "ui_canvasdialog.h"
 #include <QDebug>
-#include "mainwindow.h"
+#include <QGraphicsScene>
+#include <QApplication>
+#include <QDebug>
 
 CanvasDialog::CanvasDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::CanvasDialog)
 {
     ui->setupUi(this);
-    canvasWidget = qobject_cast<CanvasWidget*>(qobject_cast<MainWindow*>(parent)->GetCanvas());
+    canvasView = qobject_cast<MainWindow*>(parent)->GetCanvas();
+    mainWindow = qobject_cast<MainWindow*>(parent);
+
 }
 
 CanvasDialog::~CanvasDialog()
@@ -16,11 +20,21 @@ CanvasDialog::~CanvasDialog()
     delete ui;
 }
 
-void CanvasDialog::on_buttonBox_clicked(QAbstractButton *button)
+
+void CanvasDialog::on_buttonBox_accepted()
 {
     canvasWidth = ui->widthSpin->value();
     canvasHeight = ui->heightSpin->value();
-    canvasWidget->SetHeight(canvasHeight);
-    canvasWidget->SetWidth(canvasWidth);
+    // change size of canvasView
+    canvasView->setMinimumSize(canvasWidth, canvasHeight);
+    canvasView->setMaximumSize(canvasWidth, canvasHeight);
+    canvasView->scene()->setSceneRect(0, 0, canvasWidth, canvasHeight);
+}
+
+
+void CanvasDialog::on_buttonBox_rejected()
+{
+    // does this quit the application? yes. is it because it crashes? ...yes
+    this->parent()->~QObject();
 }
 
