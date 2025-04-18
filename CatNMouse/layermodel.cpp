@@ -52,7 +52,14 @@ int LayerModel::rowCount(const QModelIndex &parent) const
 void LayerModel::AddLayer(CanvasLayer *newLayer)
 {
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    listData << newLayer;
+    listData.append(newLayer);
+    qDebug() << QString("new layer: %1").arg(listData.last()->GetLayerName());
+    int counter = 0;
+    foreach (CanvasLayer* layer, listData)
+    {
+        counter += 1;
+    }
+    qDebug() << QString("counter: %1").arg(counter);
     endInsertRows();
     emit LayerAdded(newLayer);
 }

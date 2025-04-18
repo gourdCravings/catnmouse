@@ -59,6 +59,7 @@ public:
         widthSpin->setButtonSymbols(QAbstractSpinBox::ButtonSymbols::NoButtons);
         widthSpin->setMinimum(1);
         widthSpin->setMaximum(9999);
+        widthSpin->setValue(500);
 
         gridLayout->addWidget(widthSpin, 0, 1, 1, 1);
 
@@ -72,6 +73,7 @@ public:
         heightSpin->setButtonSymbols(QAbstractSpinBox::ButtonSymbols::NoButtons);
         heightSpin->setMinimum(1);
         heightSpin->setMaximum(9999);
+        heightSpin->setValue(500);
 
         gridLayout->addWidget(heightSpin, 1, 1, 1, 1);
 

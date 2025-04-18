@@ -33,13 +33,13 @@ MainWindow::MainWindow(QWidget *parent)
     //connect(ui->canvasView, &CanvasView::SetActiveLayer, this, &MainWindow::OnActiveLayerChanged);
     // set up background layer
     CanvasLayer *backgroundLayer = new CanvasLayer();
+    backgroundLayer->SetLayerName("Background");
     model->AddLayer(backgroundLayer);
     QModelIndex firstIndex = model->index(0, 0);
     ui->layerListView->selectionModel()->setCurrentIndex(firstIndex, QItemSelectionModel::Select | QItemSelectionModel::Current);
     backgroundLayer->FillColor(Qt::white);
     // backgroundLayer->setPalette(Qt::white);
     // backgroundLayer->setAutoFillBackground(true);
-    backgroundLayer->SetLayerName("Background");
 
     //stack->addWidget(backgroundLayer);
     // set up spinbox
@@ -115,10 +115,6 @@ void MainWindow::on_brushButton_clicked()
     BrushDialog *brushDialog = new BrushDialog(this);
     brushDialog->setWindowModality(Qt::WindowModality::WindowModal);
     brushDialog->show();
-    // if (currentLayer.GetCatBrush().GetTexture().toImage() == QImage(":/brush/textures/testtexture.png"))
-    // {
-    //     currentLayer.GetCatBrush.SetTexture(QPixmap(":/brush/textures/circletexture.png"));
-    // }
 }
 
 
@@ -137,7 +133,7 @@ void MainWindow::UpdateStackOrder(const QList<CanvasLayer *> &newOrder)
 
     // Remove all existing layers from the scene (find a more efficient way if needed)
     for (QGraphicsItem *item : scene->items()) {
-        CanvasLayer *layer = dynamic_cast<CanvasLayer *>(item);
+        CanvasLayer *layer = qgraphicsitem_cast<CanvasLayer*>(item);
         if (layer) {
             scene->removeItem(layer);
         }
@@ -162,10 +158,11 @@ void MainWindow::UpdateStackOrder(const QList<CanvasLayer *> &newOrder)
 void MainWindow::OnLayerSelected(const QModelIndex &index, QModelIndex &prev)
 {
     qDebug() << "current changed";
+    ui->canvasView->GetActiveLayer()->clearFocus();
     ui->layerListView->setCurrentIndex(index);
     CanvasLayer *newActive = model->GetLayerAtIndex(index.row());
     qDebug() << index.row();
-    qDebug() << newActive->GetLayerName();
+    qDebug() << QString("OnLayerSelected: %1").arg(newActive->GetLayerName());
     ui->canvasView->SetActiveLayer(newActive);
     // if (!index.isValid())
     //     return;
@@ -300,7 +297,7 @@ void MainWindow::on_widthSpin_valueChanged(int arg1)
     }
     // get current layer
     CanvasLayer *currentLayer = ui->canvasView->GetActiveLayer();
-    qDebug() << currentLayer->isEmpty();
+    qDebug() << QString("is empty: %1").arg(currentLayer->isEmpty());
     // get catbrush
     CatBrush *currentBrush = currentLayer->GetCatBrush();
     // fix & set catbrush
@@ -376,14 +373,20 @@ void MainWindow::OnActiveLayerChanged(CanvasLayer* newActive)
 void MainWindow::on_layerListView_clicked(const QModelIndex &index)
 {
     int intDex = model->rowCount() - index.row() - 1;
-    qDebug() << intDex;
+    qDebug() << QString("intDex: %1").arg(intDex);
     CanvasLayer* currentLayer = ui->canvasView->GetActiveLayer();
     if (currentLayer)
     {
-        qDebug() << currentLayer->GetLayerName();
+        qDebug() << QString("on_layerListView_clicked currentLayer: %1").arg(currentLayer->GetLayerName());
+        if (model->GetData().size() == 1)
+        {
+            qDebug() << QString("size = 1");
+            ui->canvasView->SetActiveLayer(currentLayer);
+            return;
+        }
     }
     CanvasLayer* selectedLayer = model->GetData()[intDex];
-    qDebug() << selectedLayer->GetLayerName();
+    qDebug() << QString("on_layerListView_clicked selectedLayer: %1").arg(selectedLayer->GetLayerName());
     ui->canvasView->SetActiveLayer(selectedLayer);
 }
 

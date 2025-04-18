@@ -14,6 +14,9 @@
 #include <QGraphicsWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <algorithm>
+#include <string>
+#include <iostream>
+#include <sstream>
 
 class CanvasLayer : public QGraphicsWidget
 {
@@ -57,6 +60,8 @@ public:
     void lineTool(); // Activates the line drawing tool
 
     bool saveImage(const QString &fileName, const char *fileFormat);
+
+    QString toString() const { return GetLayerName(); }
 
 public slots:
     void clearImage();

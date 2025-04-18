@@ -1,5 +1,6 @@
 #include "brushdialog.h"
 #include "ui_brushdialog.h"
+#include <QDebug>
 
 BrushDialog::BrushDialog(QWidget *parent)
     : QDialog(parent)
@@ -7,7 +8,9 @@ BrushDialog::BrushDialog(QWidget *parent)
     , brushList(new QList<CatBrush*>)
 {
     ui->setupUi(this);
-    currentLayer = qobject_cast<CanvasLayer*>(qobject_cast<MainWindow*>(parent)->GetStack()->currentWidget());
+    currentLayer = qobject_cast<MainWindow*>(parent)->GetCanvas()->GetActiveLayer();
+    qDebug() << currentLayer->GetLayerName();
+    //currentLayer = qobject_cast<CanvasLayer*>(qobject_cast<MainWindow*>(parent)->GetStack()->currentWidget());
     currentBrush = currentLayer->GetCatBrush();
     // populate brushList
     CatBrush *roundBrush = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::red, "round");

@@ -14,6 +14,7 @@ CanvasLayer::CanvasLayer(QGraphicsItem *parent)
     catEraser = new CatBrush(":/brush/textures/circletexture.png", 5, Qt::blue, "round");
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(QGraphicsItem::ItemIsSelectable);
+    setFlag(QGraphicsItem::ItemIsFocusable);
 }
 
 void CanvasLayer::SetCatBrush(CatBrush *newCatBrush)
@@ -190,6 +191,7 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
         lastPoint = endPoint;
     }
     update();
+    qDebug() << QString("Drawing on: %1").arg(layerName);
 
 }
 

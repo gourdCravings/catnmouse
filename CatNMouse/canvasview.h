@@ -17,6 +17,7 @@ public:
     void SetModel(LayerModel *newModel);
     CanvasLayer* GetActiveLayer() const;
     void SetActiveLayer(CanvasLayer* layer);
+    bool IsActiveLayer(CanvasLayer* layer);
 signals:
     void ActiveLayerChanged(CanvasLayer* newLayer);
 public slots:
@@ -26,6 +27,7 @@ public slots:
 private:
     LayerModel *model = nullptr;
     QGraphicsScene *mScene;
+    CanvasLayer* currentLayer = nullptr;
 };
 
 #endif // CANVASVIEW_H
