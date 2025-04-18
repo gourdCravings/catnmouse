@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QCursor>
 #include <QGraphicsView>
 #include <QStackedLayout>
 #include <QKeyEvent>
@@ -11,7 +12,6 @@
 #include <QStringListModel>
 #include "layermodel.h"
 #include <QSortFilterProxyModel>
-#include "brushdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -70,6 +70,7 @@ private:
     QSortFilterProxyModel *proxyModel;
     // line
     QAction *lineAction;
+    QAction *eyedropAction;
     // save
     QMenu *saveMenu;
     QMenu *fileMenu;

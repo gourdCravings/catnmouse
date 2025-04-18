@@ -10,6 +10,9 @@
     <height>574</height>
    </rect>
   </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -168,19 +171,6 @@
     </property>
     <property name="text">
      <string>Select Color</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="coordinateLabel">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>70</y>
-      <width>111</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Coordinates: (--, --)</string>
     </property>
    </widget>
   </widget>

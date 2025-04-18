@@ -1,7 +1,9 @@
 #include "canvaslayer.h"
 #include "mainwindow.h"
+#include "catbrush.h"
 #include <QMouseEvent>
 #include <QPainter>
+#include <QCursor>
 #include <QApplication>
 #include <QMessageBox>
 
@@ -41,6 +43,11 @@ void CanvasLayer::clearImage()
 
 void CanvasLayer::mousePressEvent(QMouseEvent *event)
 {
+    // QMessageBox::information(this, "Tool Info",
+    //                          "TOOL STATUS: Scribbling - " + QString::number(scribbling) +
+    //                              ", Drawing Line - " + QString::number(drawingLine) +
+    //                              ", Eyedropper - " + QString::number(eyedropper));
+    // show();
     if (event->button() == Qt::LeftButton && scribbling) {
         lastPoint = event->position().toPoint();
     }
@@ -48,11 +55,25 @@ void CanvasLayer::mousePressEvent(QMouseEvent *event)
     {
         lineStartPoint = event->position().toPoint();
     }
-    else if (event->button() == Qt::LeftButton && eyedropper)
+    else if (event->button() == Qt::LeftButton && eyedropper == true)
     {
-        eyedropPoint = mapFromGlobal(QCursor::pos());
+        eyedropPoint = event->position().toPoint();
         QMessageBox::information(this, "Eyedropper Info",
                                  "The cursor is at (" + QString::number(eyedropPoint.x()) + ", " + QString::number(eyedropPoint.y()) + ")");
+
+        show();
+        colorSelected = image.pixel(eyedropPoint.x(), eyedropPoint.y());
+        QMessageBox::information(this, "Eyedropper Info",
+                                  "The color selected is R =" + QString::number(colorSelected.red()) + " B ="
+                                      + QString::number(colorSelected.blue()) + " G =" + QString::number(colorSelected.green()));
+        show();
+
+        catBrush->SetBrushColor(colorSelected);
+
+        QGuiApplication::restoreOverrideCursor();
+        scribbling = true;
+        drawingLine = false;
+        eyedropper = false;
     }
 }
 

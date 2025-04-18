@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QWidget>
 #include <QPen>
+#include <QCursor>
 #include "catbrush.h"
 #include <QPainter>
 
@@ -73,6 +74,7 @@ private:
     QPoint currentLineEnd; // line tool preview
     CatBrush *catBrush;
     QString layerName;
+    QColor colorSelected;
     // QPixmap myTexture = QPixmap(":/brush/textures/testtexture.png").scaledToWidth(myPenWidth);
     //QBrush myBrush = QBrush(myPenColor, myTexture);
     //QPen myPen = QPen(myBrush, myPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);

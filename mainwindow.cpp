@@ -1,7 +1,9 @@
 #include "mainwindow.h"
+#include "brushdialog.h"
 #include "ui_mainwindow.h"
 #include "colordialog.h"
 #include <QMessageBox>
+#include <QCursor>
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -58,9 +60,16 @@ MainWindow::MainWindow(QWidget *parent)
     lineAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L)); // Optional shortcut
     connect(lineAction, &QAction::triggered, backgroundLayer, &CanvasLayer::lineTool);
 
+
+    // create the eyedropper tool action and connect it to canvasLayer
+    eyedropAction = new QAction(tr("Eyedropper Tool"), this);
+    eyedropAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D)); // Optional shortcut
+    connect(eyedropAction, &QAction::triggered, backgroundLayer, &CanvasLayer::eyedropTool);
+
     // add to menu
     QMenu *toolsMenu = menuBar()->addMenu(tr("Tools"));
     toolsMenu->addAction(lineAction);
+    toolsMenu->addAction(eyedropAction);
 }
 
 MainWindow::~MainWindow()
@@ -265,7 +274,11 @@ void MainWindow::on_colorSelectButton_clicked()
 
 void MainWindow::on_eyedropButton_clicked()
 {
-    CanvasLayer currentLayer = stack->currentWidget();
-    currentLayer.eyedropTool();
+    eyedropAction->activate(QAction::Trigger);
+    QGuiApplication::setOverrideCursor(QCursor(Qt::CrossCursor));
+    //MainWindow::setStyleSheet("QMainWindow {cursor = CrossCursor; }");
+    // QMessageBox::information(this, "Eyedropper Info",
+    //                          "Activated!");
+    // show();
 }
 
