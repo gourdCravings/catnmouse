@@ -217,11 +217,12 @@ void MainWindow::SetupListView()
     proxyModel->sort(0, Qt::DescendingOrder);
     ui->layerListView->setModel(proxyModel);
 
-    // doesn't work
-    ui->layerListView->setDragEnabled(true);
-    ui->layerListView->setAcceptDrops(true);
-    ui->layerListView->setDragDropMode(QAbstractItemView::InternalMove);
-    ui->layerListView->setDropIndicatorShown(true);
+
+    // // doesn't work
+    // ui->layerListView->setDragEnabled(true);
+    // ui->layerListView->setAcceptDrops(true);
+    // ui->layerListView->setDragDropMode(QAbstractItemView::InternalMove);
+    // ui->layerListView->setDropIndicatorShown(true);
 }
 
 void MainWindow::Save()
@@ -372,6 +373,12 @@ void MainWindow::OnActiveLayerChanged(CanvasLayer* newActive)
 
 void MainWindow::on_layerListView_clicked(const QModelIndex &index)
 {
+    // QStyleOptionViewItem option;
+    // option.initFrom(ui->layerListView);
+    // option.rect = ui->layerListView->visualRect(index);
+    // option.state |= QStyle::State_Active;
+    // option.features |= QStyleOptionViewItem::HasCheckIndicator;
+
     int intDex = model->rowCount() - index.row() - 1;
     qDebug() << QString("intDex: %1").arg(intDex);
     CanvasLayer* currentLayer = ui->canvasView->GetActiveLayer();
@@ -386,6 +393,11 @@ void MainWindow::on_layerListView_clicked(const QModelIndex &index)
         }
     }
     CanvasLayer* selectedLayer = model->GetData()[intDex];
+    if (selectedLayer->GetCheckClicked())
+    {
+        selectedLayer->ToggleCheckClicked();
+        return;
+    }
     qDebug() << QString("on_layerListView_clicked selectedLayer: %1").arg(selectedLayer->GetLayerName());
     ui->canvasView->SetActiveLayer(selectedLayer);
 }

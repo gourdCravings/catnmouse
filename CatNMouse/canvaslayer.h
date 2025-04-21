@@ -38,6 +38,7 @@ public:
     QImage GetImage() const { return image; }
     bool GetToggle() const { return erasing; }
     bool GetSelect() const { return selecting; }
+    bool GetCheckClicked() const { return checkClicked; }
 
     // setters
     void SetCatBrush(CatBrush *newCatBrush);
@@ -48,6 +49,8 @@ public:
     void ToggleSelecting();
     void ToggleScribbling();
     void ToggleFilling() {filling = !filling;}
+    void ToggleCheckClicked() { checkClicked = !checkClicked; }
+    void setVisible(bool visible);
 
     void FillColor(QColor color);
 
@@ -73,6 +76,7 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void resizeEvent(QGraphicsSceneResizeEvent *event) override;
+    // void showEvent(QShowEvent *event) override;
 
 private:
     void drawLineTo(const QPoint &endPoint);
@@ -88,6 +92,7 @@ private:
     bool selecting = false;
     bool oldSelecting = false;
     bool filling = false;
+    bool checkClicked = false;
 
     // int myPenWidth = 100;
     int layerIndexP = 0;

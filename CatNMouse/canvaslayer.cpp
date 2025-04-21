@@ -282,3 +282,20 @@ void CanvasLayer::FillColor(QColor color)
     // image = QImage(this->size().toSize(), QImage::Format_ARGB32);
     // image.fill(Qt::white);
 }
+
+// void CanvasLayer::showEvent(QShowEvent *event)
+// {
+//     this->setEnabled(false);
+// }
+
+void CanvasLayer::setVisible(bool visible)
+{
+    ToggleCheckClicked();
+    if (visible)
+    {
+        show();
+    } else
+    {
+        hide();
+    }
+}
