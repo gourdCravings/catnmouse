@@ -5,6 +5,10 @@
 #include <QGraphicsOpacityEffect>
 #include <iostream>
 #include <QTimer>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QCursor>
+#include <QDebug>
 
 CanvasLayer::CanvasLayer(QGraphicsItem *parent)
 : QGraphicsWidget(parent)
@@ -70,10 +74,39 @@ void CanvasLayer::mousePressEvent(QGraphicsSceneMouseEvent *event)
             catBrush->SetBrushColor(colorSelected);
 
             QGuiApplication::restoreOverrideCursor();
+        } else if (drawingCurve){
+            // Cities: Skylines style 3-point curve
+            QPoint clickPoint = event->pos().toPoint();
+            
+            if (curveState == 0) {
+                // first click - set starting point
+                lineStartPoint = clickPoint;
+                
+                // reset other points
+                controlPoint = clickPoint;
+                currentLineEnd = clickPoint;
+                previewPoint = clickPoint;
+                
+                curveState = 1; // move to next state
+                printf("This is curve state 1!");
+                
+            } else if (curveState == 1) {
+                // second click - set flex/control point
+                controlPoint = clickPoint;
+                curveState = 2; // move to next state
+                
+            } else if (curveState == 2) {
+                // third click - set end point and draw
+                currentLineEnd = clickPoint;
+                drawCurveTo(currentLineEnd);
+                curveState = 0; // reset state
+                drawingCurve = false;
+                scribbling = true; // return to default drawing mode
+            }
+            update();
         }
     }
 }
-
 void CanvasLayer::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
@@ -89,16 +122,16 @@ void CanvasLayer::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             // trigger repaint so paintEvent shows preview
             update();
         }
-        // else if (eyedropper)
-        // {
-        //     scribbling = true;
-        //     drawingLine = false;
-        //     eyedropper = false;
-        // }
         else if (selecting)
         {
             selectTool->setGeometry(QRect(selectTool->GetOrigin(), event->pos().toPoint()).normalized());
         }
+    }
+    
+    // slways update preview point for curve tool regardless of button state
+    if (drawingCurve) {
+        previewPoint = event->pos();
+        update();
     }
 }
 
@@ -107,8 +140,13 @@ void CanvasLayer::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     if (event->button() == Qt::LeftButton && scribbling) {
         drawLineTo(event->pos().toPoint());
     }
-    else if (drawingLine) {
-        drawLineTo(event->pos().toPoint());
+    else if (event->button() == Qt::LeftButton && drawingLine) {
+        // trying to fix my line tool again because it keeps on fucking breaking :)))))
+        QPoint tempLastPoint = lastPoint;  
+        lastPoint = lineStartPoint;        
+        drawLineTo(event->pos().toPoint()); 
+        lastPoint = tempLastPoint;         
+        
         drawingLine = false; // reset line drawing mode
         scribbling = true;
     }
@@ -128,19 +166,67 @@ void CanvasLayer::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void CanvasLayer::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(widget);
-
-    QRectF dirtyRect = option->rect; // Get the invalidated area
-
-    // Draw the image onto the widget
+    QRectF dirtyRect = option->rect;
     painter->drawImage(dirtyRect, image, dirtyRect);
 
-    // Check if the left mouse button is pressed
-    if (QApplication::mouseButtons() & Qt::LeftButton)
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    
+    // preview for line tool
+    if (drawingLine && (QApplication::mouseButtons() & Qt::LeftButton))
     {
-        if (drawingLine)
-        {
-            painter->setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine)); // Dashed line for preview
-            painter->drawLine(lineStartPoint, mapFromScene(QCursor::pos())); // Live preview
+        painter->setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine));
+        QPointF itemPt = mapFromScene(scene()->views().first()->mapToScene(
+            scene()->views().first()->viewport()->mapFromGlobal(QCursor::pos())));
+        painter->drawLine(lineStartPoint, itemPt);
+    }
+    // curve preview
+    else if (drawingCurve) {
+        // draw the initial point marker
+        if (curveState >= 1) {
+            painter->setBrush(catBrush->GetColor());
+            painter->setPen(Qt::NoPen);
+            painter->drawEllipse(lineStartPoint, 5, 5);
+        }
+        
+        painter->setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine));
+        
+        // first stage - line from start to current position
+        if (curveState == 1) {
+            // get current mouse position if not dragging
+            QPointF currentPos = previewPoint;
+            if (currentPos.isNull()) {
+                QPointF itemPt = mapFromScene(scene()->views().first()->mapToScene(
+                    scene()->views().first()->viewport()->mapFromGlobal(QCursor::pos())));
+                currentPos = itemPt;
+            }
+            painter->drawLine(lineStartPoint, currentPos);
+        }
+        // second stage - draw control point and curve
+        else if (curveState == 2) {
+            // draw control point marker
+            painter->setBrush(QColor(255, 165, 0)); // Orange
+            painter->setPen(Qt::NoPen);
+            painter->drawEllipse(controlPoint, 5, 5);
+            
+            // draw handle lines (optional)
+            painter->setPen(QPen(QColor(150, 150, 150), 1, Qt::DashLine));
+            painter->drawLine(lineStartPoint, controlPoint);
+            
+            // get current mouse position if not dragging
+            QPointF currentPos = previewPoint;
+            if (currentPos.isNull()) {
+                QPointF itemPt = mapFromScene(scene()->views().first()->mapToScene(
+                    scene()->views().first()->viewport()->mapFromGlobal(QCursor::pos())));
+                currentPos = itemPt;
+            }
+            painter->drawLine(controlPoint, currentPos);
+            
+            // draw the curve preview
+            painter->setPen(QPen(catBrush->GetColor(), catBrush->GetWidth(), Qt::DashLine));
+            QPainterPath path;
+            path.moveTo(lineStartPoint);
+            path.quadTo(controlPoint, currentPos);
+            painter->drawPath(path);
         }
     }
 }
@@ -217,6 +303,38 @@ void CanvasLayer::drawLineTo(const QPoint &endPoint)
 
 }
 
+void CanvasLayer::drawCurveTo(const QPoint &endPoint) {
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+    // quadratic bezier curve with three points
+    QLineF line1(lineStartPoint, controlPoint);
+    QLineF line2(controlPoint, endPoint);
+    int steps = qMax(abs(line1.length()), abs(line2.length()));
+    steps = qMax(steps, 50); // ensure enough points for a smooth curve
+
+    for (int i = 0; i <= steps; ++i) {
+        qreal t = static_cast<qreal>(i) / steps;
+
+        // quadratic bezier formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+        QPointF point = (1 - t) * (1 - t) * lineStartPoint +
+                        2 * (1 - t) * t * controlPoint +
+                        t * t * endPoint;
+
+        QPoint newPoint(point.x() - (catBrush->GetTexture().width() / 2),
+                        point.y() - (catBrush->GetTexture().height() / 2));
+        painter.drawPixmap(newPoint, catBrush->GetTexture());
+    }
+
+    // update lastPoint to prevent connecting to this curve in future operations
+    lastPoint = endPoint;
+
+    modified = true;
+    update();
+}
+
+
 void CanvasLayer::resizeImage(QImage *image, const QSize &newSize)
 {
     if (image->size() == newSize)
@@ -250,6 +368,20 @@ void CanvasLayer::lineTool()
     eyedropper = false;
 }
 
+void CanvasLayer::curveTool()
+{
+    scribbling = false;
+    drawingLine = false;
+    drawingCurve = true;
+    curveState = 0; // reset to place starting point
+    // reset all points to prevent connecting to previous points
+    lastPoint = QPoint(0, 0);
+    lineStartPoint = QPoint(0, 0);
+    controlPoint = QPoint(0, 0);
+    currentLineEnd = QPoint(0, 0);
+    printf("HELP ME");
+}
+
 void CanvasLayer::eyedropTool()
 {
     scribbling = false;
@@ -258,14 +390,38 @@ void CanvasLayer::eyedropTool()
 }
 
 bool CanvasLayer::saveImage(const QString &fileName, const char *fileFormat)
-{
+{    
+    // check if image is valid before attempting to save
+    if (image.isNull()) {
+        // create an empty image if none exists
+        image = QImage(this->preferredSize().toSize(), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        qDebug() << "Created new empty image for saving";
+    }
+    
+    // check if fileName is valid
+    if (fileName.isEmpty()) {
+        qDebug() << "Error: Empty filename provided for saving";
+        return false;
+    }
+    
     QImage visibleImage = image;
-    // resizeImage(&visibleImage, size());
-
-    if (visibleImage.save(fileName, fileFormat)) {
+    
+    // check fileFormat to avoid segfault with null pointer
+    if (!fileFormat || strlen(fileFormat) == 0) {
+        qDebug() << "Error: Invalid file format provided, defaulting to PNG";
+        if (visibleImage.save(fileName, "PNG")) {
+            modified = false;
+            qDebug() << "Successfully saved image to" << fileName;
+            return true;
+        }
+    } else if (visibleImage.save(fileName, fileFormat)) {
         modified = false;
+        qDebug() << "Successfully saved image to" << fileName << "as" << fileFormat;
         return true;
     }
+    
+    qDebug() << "Failed to save image to" << fileName;
     return false;
 }
 
@@ -286,8 +442,13 @@ void CanvasLayer::ToggleSelecting()
         ToggleScribbling();
     } else
     {
-        selectTool->hide();
-        selectTool = nullptr;
+        // make sure selectTool exists before trying to hide it
+        if (selectTool != nullptr) {
+            selectTool->hide();
+            selectTool = nullptr;
+
+            scribbling = true;
+        }
     }
 }
 

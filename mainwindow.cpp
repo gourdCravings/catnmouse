@@ -9,6 +9,7 @@
 #include <QImageWriter>
 #include <QLabel>
 #include <QDebug>
+#include <QPainter>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -249,8 +250,81 @@ bool MainWindow::SaveFile(const QByteArray &fileFormat)
                                                         .arg(QString::fromLatin1(fileFormat)));
     if (fileName.isEmpty())
         return false;
-    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
-    return currentLayer->saveImage(fileName, fileFormat.constData());
+        
+    // get all layers from the model
+    QList<CanvasLayer*> layers = model->GetData();
+    if (layers.isEmpty()) {
+        qDebug() << "error: no layers found for saving";
+        return false;
+    }
+    
+    // Debug layer info
+    qDebug() << "total layers to process:" << layers.size();
+    for (int i = 0; i < layers.size(); i++) {
+        qDebug() << "layer" << i << ":" << layers[i]->GetLayerName() 
+                << "visible:" << layers[i]->isVisible();
+    }
+    
+    // create a merged image with all layers
+    QImage mergedImage;
+    bool initialized = false;
+    
+    // composting the layers
+    for (int i = 0; i < layers.size(); i++) {
+        CanvasLayer* layer = layers[i];
+        
+        qDebug() << "processing layer:" << layer->GetLayerName()
+                << "visible:" << layer->isVisible();
+        
+        // skip if layer is not visible (uses inherited QGraphicsWidget::isVisible())
+        if (!layer->isVisible()) {
+            qDebug() << "skipping invisible layer:" << layer->GetLayerName();
+            continue;
+        }
+        
+        QImage layerImage = layer->GetImage();
+        
+        if (layerImage.isNull()) {
+            qDebug() << "layer" << layer->GetLayerName() << "no image data, skipping";
+            continue;
+        }
+        
+        if (layerImage.width() == 0 || layerImage.height() == 0) {
+            qDebug() << "layer" << layer->GetLayerName() << "has zero-size image, skipping";
+            continue;
+        }
+        
+        qDebug() << "drawing layer:" << layer->GetLayerName() 
+                 << "size:" << layerImage.size();
+        
+        // initialize the merged image based on the first valid layer
+        if (!initialized) {
+            mergedImage = QImage(layerImage.size(), QImage::Format_ARGB32_Premultiplied);
+            mergedImage.fill(Qt::transparent);
+            initialized = true;
+        }
+        
+        // draw this layer onto the merged image
+        QPainter painter(&mergedImage);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.drawImage(0, 0, layerImage);
+        painter.end();
+    }
+    
+    if (!initialized) {
+        qDebug() << "error: no valid image data in any layer";
+        return false;
+    }
+    
+    qDebug() << "saving merged image to" << fileName;
+    
+    // save the merged image
+    if (mergedImage.save(fileName, fileFormat.constData())) {
+        return true;
+    }
+    
+    qDebug() << "failed to save image to" << fileName;
+    return false;
 }
 
 void MainWindow::CreateActions()
@@ -350,10 +424,14 @@ void MainWindow::on_colorSelectButton_clicked()
 
 void MainWindow::on_selectButton_clicked()
 {
-    // get current layer
-    CanvasLayer *currentLayer = qobject_cast<CanvasLayer*>(stack->currentWidget());
-    // toggle selection
-    currentLayer->ToggleSelecting();
+    // get current layer from canvasView instead of the stack
+    CanvasLayer *currentLayer = ui->canvasView->GetActiveLayer();
+    if (currentLayer) {
+        // toggle selection
+        currentLayer->ToggleSelecting();
+    } else {
+        qDebug() << "error: no active layer selected";
+    }
 }
 
 CanvasView* MainWindow::GetCanvas()
@@ -420,5 +498,21 @@ void MainWindow::on_eyedropButton_clicked()
     // QMessageBox::information(this, "Eyedropper Info",
     //                          "Activated!");
     // show();
+}
+
+
+void MainWindow::on_curveButton_clicked()
+{
+    CanvasLayer *currentLayer = ui->canvasView->GetActiveLayer();
+    if (currentLayer){
+        currentLayer->curveTool();
+    }
+}
+
+
+void MainWindow::on_clearButton_clicked()
+{
+    CanvasLayer *currentLayer = ui->canvasView->GetActiveLayer();
+    currentLayer->clearImage();
 }
 

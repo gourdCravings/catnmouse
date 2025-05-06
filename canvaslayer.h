@@ -61,6 +61,7 @@ public:
 
     // stuff for switching tools
     void lineTool(); // Activates the line drawing tool
+    void curveTool(); // activates the curved line tool
     void eyedropTool();
 
     bool saveImage(const QString &fileName, const char *fileFormat);
@@ -81,6 +82,8 @@ protected:
 
 private:
     void drawLineTo(const QPoint &endPoint);
+    void drawCurveTo(const QPoint &endPoint);
+    void drawStraightLine(const QPoint &startPoint, const QPoint &endPoint);
     void resizeImage(QImage *image, const QSize &newSize);
     void SwapBrushes(CatBrush **brushA, CatBrush **brushB);
 
@@ -90,6 +93,7 @@ private:
     bool oldScribbling = true;
     bool erasing = false;
     bool drawingLine = false;
+    bool drawingCurve = false;
     bool eyedropper = false;
     bool selecting = false;
     bool oldSelecting = false;
@@ -98,12 +102,15 @@ private:
 
     // int myPenWidth = 100;
     int layerIndexP = 0;
+    int curveState = 0; // 0: start, 1: control point, 2: end point
     // QColor myPenColor = Qt::blue;
     QImage image;
     QPoint lastPoint;
     QPoint lineStartPoint;
+    QPoint controlPoint; // control point for Bezier curve
     QPoint eyedropPoint;
     QPoint currentLineEnd; // line tool preview
+    QPointF previewPoint;
     CatBrush *catBrush;
     CatBrush *catEraser;
     SelectionTool *selectTool = nullptr;
